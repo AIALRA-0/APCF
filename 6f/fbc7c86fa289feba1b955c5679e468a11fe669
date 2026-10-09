@@ -1,0 +1,283 @@
+.agent-project-control/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_da822b33dc1ccf 1-3
+.agent-project-control/ARCHITECTURE.md
+  s_0e8ff61e9358f0::t_c7e92832e8fea5 1-10
+.agent-project-control/DESIGN.md
+  s_0e8ff61e9358f0::t_4d9b7b2c002b54 1-38
+.agent-project-control/PROJECT.md
+  s_0e8ff61e9358f0::t_8763d6ce7fc404 1-10
+.agent-project-control/decisions/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_7c9390be64c3ba 1-3
+.agent-project-control/decisions/INDEX.md
+  s_0e8ff61e9358f0::t_5eab8b8fb36aa8 1-2
+.agent-project-control/design/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_56087f25204fc5 1-3
+.agent-project-control/design/.gitattributes
+  s_0e8ff61e9358f0::t_8b44c4e51ee69d 1-4
+.agent-project-control/design/BASELINES.lock.yaml
+  s_0e8ff61e9358f0::t_54f4fdb36b9673 1-16
+.agent-project-control/design/INDEX.md
+  s_0e8ff61e9358f0::t_e560f5c8ef7e74 1-62
+.agent-project-control/design/PROVENANCE.md
+  s_0e8ff61e9358f0::t_f7ec413bf5ae5d 1-40
+.agent-project-control/design/RULES.md
+  s_0e8ff61e9358f0::t_9a7f30c746e478 1-855
+.agent-project-control/design/SOURCES.md
+  s_0e8ff61e9358f0::t_05856940c85144 1-30
+.agent-project-control/design/VERIFICATION.md
+  s_0e8ff61e9358f0::t_cf6d33cf02f273 1-36
+.agent-project-control/design/profiles/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_bd05fae6acda95 1-3
+.agent-project-control/design/profiles/tool-workbench-2.3.1/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_b831b677b1110e 1-3
+.agent-project-control/design/profiles/tool-workbench-2.3.1/PROFILE.md
+  s_0e8ff61e9358f0::t_ee83385fd01fe8 1-102
+.agent-project-control/design/profiles/tool-workbench-2.3.1/reference-template.zip.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_a5607ed2951326 1-4
+.agent-project-control/design/profiles/tool-workbench-2.3.1/tokens.json
+  s_0e8ff61e9358f0::t_90aff8de6ea8a7 1-92
+.agent-project-control/design/profiles/tool-workbench-2.3.1/tokens.json.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_d04449ffefd37a 1-4
+.agent-project-control/framework.yaml
+  s_0e8ff61e9358f0::t_dd2e66e712a97a 1-20
+.agent-project-control/gate.toml
+  s_0e8ff61e9358f0::t_50381a44550bee 1-77
+.agent-project-control/generated/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_a8d5910c3ab4be 1-3
+.agent-project-control/generated/TREE.html
+  s_0e8ff61e9358f0::t_4d9a559ad58b30 1-2
+.agent-project-control/generated/TREE.md
+  s_0e8ff61e9358f0::t_e5688c3ed04413 1-136
+.agent-project-control/interfaces/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_90503d5a91b983 1-3
+.agent-project-control/interfaces/APCF_ONBOARDING.md
+  s_0e8ff61e9358f0::t_3744f0dc79fdf4 1-52
+.agent-project-control/interfaces/STYLE_STANDARD.md
+  s_0e8ff61e9358f0::t_e832c8c1f3eea7 1-21
+.agent-project-control/interfaces/WRITING_STANDARD.md
+  s_0e8ff61e9358f0::t_ccb57c0eab8786 1-22
+.agent-project-control/iterations/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_a39ffefdc7ecc9 1-3
+.agent-project-control/iterations/INDEX.md
+  s_0e8ff61e9358f0::t_aaefb04821b02c 1-2
+.agent-project-control/materials/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_8127efb52d055d 1-3
+.agent-project-control/materials/INDEX.md
+  s_0e8ff61e9358f0::t_dcdca9b00d8815 1-2
+.agent-project-control/regressions/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_e1a894cbedb263 1-3
+.agent-project-control/regressions/INDEX.md
+  s_0e8ff61e9358f0::t_74e5cdc5d51776 1-2
+.agent-project-control/routing.toml
+  s_0e8ff61e9358f0::t_ee25171ee5173d 1-143
+.agent-project-control/rules/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_c1f34e54a99b51 1-3
+.agent-project-control/rules/01-context-state.md
+  s_0e8ff61e9358f0::t_84f091413325a1 1-418
+.agent-project-control/rules/02-execution-scope.md
+  s_0e8ff61e9358f0::t_4ab44218ea80ce 1-519
+.agent-project-control/rules/03-verification-regression.md
+  s_0e8ff61e9358f0::t_d1f119ba21fc5a 1-333
+.agent-project-control/rules/04-tools-parallel.md
+  s_0e8ff61e9358f0::t_582a91eae9837a 1-474
+.agent-project-control/rules/05-delivery-lifecycle.md
+  s_0e8ff61e9358f0::t_355a8db86332be 1-237
+.agent-project-control/rules/06-framework-contract.md
+  s_0e8ff61e9358f0::t_830bbdb9b1faf7 1-493
+.agent-project-control/rules/COVERAGE.md
+  s_0e8ff61e9358f0::t_84ab5601fba6c1 1-27
+.agent-project-control/rules/INDEX.md
+  s_0e8ff61e9358f0::t_0e92a312092991 1-46
+.agent-project-control/runbooks/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_c0fe419166bff7 1-3
+.agent-project-control/runbooks/INDEX.md
+  s_0e8ff61e9358f0::t_4ca62a9e62563e 1-2
+.agent-project-control/runtime/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_5a2943c8c8150b 1-3
+.agent-project-control/runtime/cache/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_ed076650b95e03 1-3
+.agent-project-control/runtime/distribution/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_f9958dc8f6095f 1-3
+.agent-project-control/runtime/downloads/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_14f5c42c0af1d1 1-3
+.agent-project-control/runtime/large/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_316fc6e0f93f52 1-3
+.agent-project-control/runtime/runs/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_50fdcf95c0255d 1-3
+.agent-project-control/runtime/testbed/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_873236d43a0fe0 1-3
+.agent-project-control/runtime/tmp/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_07153e603b79bb 1-3
+.agent-project-control/scripts/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_7c49837909aabe 1-3
+.agent-project-control/scripts/audit_routes.py
+  s_0e8ff61e9358f0::t_7cb22b3cae38d0 1-411
+.agent-project-control/scripts/bootstrap.py
+  s_0e8ff61e9358f0::t_a6090b2cbb02ef 1-271
+.agent-project-control/scripts/cleanup_runtime.py
+  s_0e8ff61e9358f0::t_853a5db9a319aa 1-75
+.agent-project-control/scripts/closeout_selfcheck.py
+  s_0e8ff61e9358f0::t_0293d94599dd7a 1-125
+.agent-project-control/scripts/common.py
+  s_0e8ff61e9358f0::t_d6459e6068baf5 1-35
+.agent-project-control/scripts/compact_template_source.py
+  s_0e8ff61e9358f0::t_c6590980a3f8e4 1-78
+.agent-project-control/scripts/core_distribution_selfcheck.py
+  s_0e8ff61e9358f0::t_ab6c7a242ab9d1 1-242
+.agent-project-control/scripts/design_contract.py
+  s_0e8ff61e9358f0::t_bb5dfceafd5338 1-307
+.agent-project-control/scripts/finalize_turn.py
+  s_0e8ff61e9358f0::t_6be69f87e3a9ab 1-560
+.agent-project-control/scripts/gate_check.py
+  s_0e8ff61e9358f0::t_dedf3d78d80d65 1-544
+.agent-project-control/scripts/gate_enforce.py
+  s_0e8ff61e9358f0::t_da851eeed226af 1-276
+.agent-project-control/scripts/gate_kernel.py
+  s_0e8ff61e9358f0::t_81ff70cdbf048a 1-439
+.agent-project-control/scripts/import_material.py
+  s_0e8ff61e9358f0::t_ce0aa3b9ede9d7 1-9
+.agent-project-control/scripts/lint_framework.py
+  s_0e8ff61e9358f0::t_7ca23f7d18f5c2 1-206
+.agent-project-control/scripts/metadata_selfcheck.py
+  s_0e8ff61e9358f0::t_767c25c946a6ce 1-334
+.agent-project-control/scripts/new_adr.py
+  s_0e8ff61e9358f0::t_04400407c494cb 1-6
+.agent-project-control/scripts/new_iteration.py
+  s_0e8ff61e9358f0::t_8f8e5b752e49b7 1-14
+.agent-project-control/scripts/new_parallel.py
+  s_0e8ff61e9358f0::t_8ef20142a620b9 1-19
+.agent-project-control/scripts/new_regression.py
+  s_0e8ff61e9358f0::t_83b54a1b1720c0 1-8
+.agent-project-control/scripts/new_runbook.py
+  s_0e8ff61e9358f0::t_25482414df157e 1-6
+.agent-project-control/scripts/new_turn.py
+  s_0e8ff61e9358f0::t_029a1be991dafe 1-62
+.agent-project-control/scripts/pilot_readiness.py
+  s_0e8ff61e9358f0::t_1de654e18ac3b0 1-123
+.agent-project-control/scripts/prepare_distribution.py
+  s_0e8ff61e9358f0::t_50b3e569ce0054 1-202
+.agent-project-control/scripts/publish_guard.py
+  s_0e8ff61e9358f0::t_298a44d5cfba85 1-996
+.agent-project-control/scripts/refresh_indexes.py
+  s_0e8ff61e9358f0::t_fc5d550b4237d9 1-14
+.agent-project-control/scripts/render_tree.py
+  s_0e8ff61e9358f0::t_d5469192f79c9f 1-19
+.agent-project-control/scripts/repair_current_state.py
+  s_0e8ff61e9358f0::t_4d3502144bcd8c 1-79
+.agent-project-control/scripts/report_contract.py
+  s_0e8ff61e9358f0::t_5e11c215accffc 1-179
+.agent-project-control/scripts/report_contract_selfcheck.py
+  s_0e8ff61e9358f0::t_2f2fbbe8ef8dd4 1-133
+.agent-project-control/scripts/route_context.py
+  s_0e8ff61e9358f0::t_7b5b892535d8b8 1-446
+.agent-project-control/scripts/routing_activity.py
+  s_0e8ff61e9358f0::t_1c82071cd05a0c 1-886
+.agent-project-control/scripts/routing_receipt.py
+  s_0e8ff61e9358f0::t_0c7710ed4777c1 1-367
+.agent-project-control/scripts/rule_sync.py
+  s_0e8ff61e9358f0::t_6f8063de63251e 1-74
+.agent-project-control/scripts/selfcheck.py
+  s_0e8ff61e9358f0::t_a3de5f0da010e8 1-3576
+.agent-project-control/scripts/selfcheck_runlog.py
+  s_0e8ff61e9358f0::t_10b16fc65f544f 1-223
+.agent-project-control/scripts/set_iteration_status.py
+  s_0e8ff61e9358f0::t_91f155d4e8b6a6 1-11
+.agent-project-control/scripts/standards_contract.py
+  s_0e8ff61e9358f0::t_2a8f44b1d4220d 1-112
+.agent-project-control/scripts/state_integrity.py
+  s_0e8ff61e9358f0::t_2413b4bd1ae90f 1-72
+.agent-project-control/scripts/sync_skills.py
+  s_0e8ff61e9358f0::t_2b775394a67781 1-74
+.agent-project-control/scripts/terminology_review.py
+  s_0e8ff61e9358f0::t_945c074393499b 1-516
+.agent-project-control/scripts/terminology_selfcheck.py
+  s_0e8ff61e9358f0::t_700fe11da7739c 1-450
+.agent-project-control/scripts/test_ledger.py
+  s_0e8ff61e9358f0::t_8b6c1f08f347aa 1-277
+.agent-project-control/skills/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_54545ece44c6d6 1-3
+.agent-project-control/skills/SKILLS.lock.yaml
+  s_0e8ff61e9358f0::t_24df3a1e9e6b78 1-24
+.agent-project-control/standards/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_12c4ac2015172a 1-3
+.agent-project-control/standards/LOCK.yaml
+  s_0e8ff61e9358f0::t_f8abf80066ef02 1-7
+.agent-project-control/standards/human-readable-chinese-style-v0.1.md
+  s_0e8ff61e9358f0::t_5061f5157f8bf4 1-1547
+.agent-project-control/standards/human-readable-chinese-writing-v0.1.md
+  s_0e8ff61e9358f0::t_c266d7a74b6572 1-1906
+.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_de652347914dc8 1-3
+.codex/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_d1f11feb08e6dd 1-3
+.codex/skills/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_da90e6388c8a46 1-3
+.github/ISSUE_TEMPLATE/bug_report.yml
+  s_0e8ff61e9358f0::t_fae2c9447282c0 1-30
+.github/ISSUE_TEMPLATE/feature_request.yml
+  s_0e8ff61e9358f0::t_3251255f04a3f5 1-20
+.github/workflows/core-ci.yml
+  s_0e8ff61e9358f0::t_8bf1e35aecfdfa 1-32
+.gitignore
+  s_0e8ff61e9358f0::t_7c8e8ab8604cab 1-19
+AGENTS.md
+  s_0e8ff61e9358f0::t_87329349df1458 1-118
+APCF-START.md
+  s_0e8ff61e9358f0::t_de1daefa9c68d8 1-8
+CHANGELOG.md
+  s_0e8ff61e9358f0::t_77b9dafaf72e50 1-11
+CODEX_DEPLOY.md
+  s_0e8ff61e9358f0::t_c6c9d5a10de695 1-77
+CODEX_PROMPT.md
+  s_0e8ff61e9358f0::t_cb2d36a188d31f 1-36
+CONTRIBUTING.md
+  s_0e8ff61e9358f0::t_74b3ce8ea97190 1-10
+CURRENT.md
+  s_0e8ff61e9358f0::t_81902a0b3d20e3 1-5
+PILOT_TEST_PLAN.md
+  s_0e8ff61e9358f0::t_a71d1521ee5cd8 1-64
+README.en.md
+  s_0e8ff61e9358f0::t_a4517a27e5105b 1-145
+README.md
+  s_0e8ff61e9358f0::t_361a4c253f4c54 1-143
+RELEASE_NOTES.md
+  s_0e8ff61e9358f0::t_c82f845c996872 1-10
+SECURITY.md
+  s_0e8ff61e9358f0::t_066ebefb4b3eb1 1-8
+TEMPLATE_SPEC.md
+  s_0e8ff61e9358f0::t_66714135280722 1-65
+VALIDATION.md
+  s_0e8ff61e9358f0::t_f6e34ac8a1121a 1-46
+assets/apcf-system-map.svg
+  s_0e8ff61e9358f0::t_9e269668a457df 1-55
+docs/APCF_ONBOARDING.md
+  s_0e8ff61e9358f0::t_55fa290d9c1935 1-52
+docs/ARCHITECTURE.md
+  s_0e8ff61e9358f0::t_3834fdcf8f56e3 1-54
+docs/QUICKSTART.md
+  s_0e8ff61e9358f0::t_3485cdba9c52c1 1-39
+docs/RELEASE_POLICY.md
+  s_0e8ff61e9358f0::t_b10472cf995b0c 1-22
+examples/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_144f7092cd2958 1-3
+examples/run_demo.py
+  s_0e8ff61e9358f0::t_bca15962236603 1-218
+install-apcf.ps1
+  s_0e8ff61e9358f0::t_4bf83e6fa00e74 1-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6ffbc7c86fa289feba1b955c5679e468a11fe669",
+  "prompts": {},
+  "sessions": {
+    "s_0e8ff61e9358f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10f02-00e5-7440-8971-e8ffd0d490e7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "AIALRA-0 <71060413+AIALRA-0@users.noreply.github.com>"
+    }
+  }
+}
