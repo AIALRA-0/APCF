@@ -1,0 +1,77 @@
+# APCF-META {"schema":1,"visibility":"public"}
+schema = 1
+attempts_relpath = "evidence/gate-attempts.jsonl"
+latest_relpath = "evidence/gate-latest.json"
+default_gate_id = "route-readiness"
+
+[exit_codes]
+PASS = 0
+INVALID = 2
+REPAIR_REQUIRED = 3
+BLOCKED = 4
+NO_PROGRESS = 5
+
+[convergence]
+repeat_failure_is_no_progress = true
+cycle_detection = true
+cycle_scope = "since-last-pass"
+
+[repair]
+dedupe = true
+scope = "failed-objects-only"
+auto_execute = false# Step 1E-B: enforcement views.
+# "core" locks framework-routing obligations for immediate actions.
+# "full" also enforces capability and semantic findings at final handoff.
+[profiles.core]
+enforce_classes = ["integrity", "phase", "scope", "source"]
+
+[profiles.full]
+enforce_classes = ["integrity", "phase", "scope", "source", "capability", "semantic"]
+
+# Entrypoints are policy, not hard-coded control flow.
+# All entrypoints remain non-retrying: one invocation -> at most one Gate evaluation.
+[entrypoints.bootstrap]
+gate = false
+auto_route_phases = ["bootstrap"]
+
+[entrypoints.parallel]
+gate = true
+profile = "core"
+gate_id = "core-parallel"
+auto_route_phases = ["tools"]
+required_phases = ["tools"]
+require_workflow = true
+
+[entrypoints.action]
+gate = true
+profile = "core"
+gate_id = "core-action"
+auto_route_phases = ["scope", "verification", "tools"]
+required_phases = ["scope", "verification", "tools"]
+require_workflow = true
+
+[entrypoints.finalize]
+gate = true
+profile = "full"
+gate_id = "full-finalization"
+auto_route_phases = ["finalization"]
+required_phases = ["finalization"]
+require_workflow = true
+require_acceptance = true
+require_content = true
+
+[entrypoints.publish]
+gate = true
+profile = "full"
+gate_id = "full-publish"
+auto_route_phases = ["delivery"]
+required_phases = ["finalization", "delivery"]
+require_workflow = true
+require_acceptance = true
+require_content = true
+required_capabilities = ["github-publish"]
+
+[enforcement]
+auto_repair = false
+retry_loop = false
+fail_closed = true

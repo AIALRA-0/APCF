@@ -1,0 +1,20 @@
+name: Feature request
+description: Propose a focused improvement to APCF
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What real project problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Expected behavior, scope and exclusions
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Reproduction or examples (use synthetic data)

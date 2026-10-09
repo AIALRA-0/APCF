@@ -1,0 +1,7 @@
+# APCF-META {"schema":1,"visibility":"public"}
+schema: 1
+version: v0.1
+writing_path: .agent-project-control/standards/human-readable-chinese-writing-v0.1.md
+writing_sha256: ba0f450a1f8f30a5f9328376739081e4ff9f501904f376bc36c55aca743ddc6f
+style_path: .agent-project-control/standards/human-readable-chinese-style-v0.1.md
+style_sha256: 97f49d1a670616b8546ed5eb1f1dfca4f45ec48d49d791a9c8c41662c3e03d76

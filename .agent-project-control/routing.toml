@@ -1,0 +1,143 @@
+# APCF-META {"schema":1,"visibility":"public"}
+schema = 1
+policy = "recall-first"
+rules_index = ".agent-project-control/rules/INDEX.md"
+rules_root = ".agent-project-control/rules"
+skill_lock = ".agent-project-control/skills/SKILLS.lock.yaml"
+skill_install_root = ".codex/skills"
+
+[receipt]
+schema = 1
+relpath = "evidence/routing.jsonl"
+
+[phases.bootstrap]
+modules = ["01-context-state.md", "02-execution-scope.md"]
+include_root_agents = true
+include_rule_index = true
+
+[phases.scope]
+modules = ["02-execution-scope.md"]
+
+[phases.verification]
+modules = ["03-verification-regression.md"]
+
+[phases.tools]
+modules = ["04-tools-parallel.md"]
+
+[phases.delivery]
+modules = ["05-delivery-lifecycle.md"]
+
+[phases.framework]
+modules = ["06-framework-contract.md"]
+
+[phases.finalization]
+modules = ["01-context-state.md", "02-execution-scope.md", "03-verification-regression.md"]
+include_root_agents = true
+include_rule_index = true
+
+[capabilities.human-readable]
+enabled = true
+dependencies = ["writing", "style"]
+
+[capabilities.writing]
+enabled = true
+modules = ["06-framework-contract.md"]
+files = [".agent-project-control/interfaces/WRITING_STANDARD.md", ".agent-project-control/standards/human-readable-chinese-writing-v0.1.md"]
+status_files = [".agent-project-control/interfaces/WRITING_STANDARD.md"]
+status_regex = '^- \*\*状态\*\*：`([^`]+)`'
+resolved_values = ["RESOLVED"]
+
+[capabilities.style]
+enabled = true
+files = [".agent-project-control/interfaces/STYLE_STANDARD.md", ".agent-project-control/standards/human-readable-chinese-style-v0.1.md"]
+status_files = [".agent-project-control/interfaces/STYLE_STANDARD.md"]
+status_regex = '^- \*\*状态\*\*：`([^`]+)`'
+resolved_values = ["RESOLVED"]
+
+[capabilities.readme]
+enabled = true
+dependencies = ["human-readable"]
+modules = ["06-framework-contract.md"]
+skills = ["github-readme-standardizer"]
+
+[capabilities.design]
+enabled = true
+modules = ["06-framework-contract.md"]
+files = [
+  ".agent-project-control/DESIGN.md",
+  ".agent-project-control/design/INDEX.md",
+  ".agent-project-control/design/RULES.md",
+  ".agent-project-control/design/VERIFICATION.md",
+  ".agent-project-control/design/BASELINES.lock.yaml",
+]
+
+# Git remote publication is a semantic capability: a plain file upload is NOT
+# a GitHub action, and loading a Skill never authorizes a remote write.
+[capabilities.github-publish]
+enabled = true
+skills = ["github-safe-publish"]
+
+[[triggers]]
+capability = "human-readable"
+globs = ["*.md", "**/*.md", "*.mdx", "**/*.mdx", "*.rst", "**/*.rst", "*.adoc", "**/*.adoc"]
+
+[[triggers]]
+capability = "readme"
+globs = ["README.md", "README.en.md", "**/README.md", "**/README.en.md"]
+
+# Recall-first: false positives are acceptable here; missing design constraints are not.
+[[triggers]]
+capability = "design"
+globs = ["**/*.css", "**/*.scss", "**/*.sass", "**/*.less", "**/*.html", "**/*.htm", "**/*.jsx", "**/*.tsx", "**/components/**", "**/ui/**"]
+
+
+[audit]
+schema = 1
+baseline_relpath = "evidence/activity-baseline.json"
+events_relpath = "evidence/activity.jsonl"
+report_relpath = "evidence/route-audit.json"
+require_semantic_review_for_unmatched_targets = true
+
+# These are generated/ephemeral surfaces whose own byte changes do not create a
+# new routing obligation. They do not suppress requirements discovered elsewhere.
+route_neutral_globs = [
+  ".agent-project-control/runtime/**",
+  ".agent-project-control/generated/**",
+]
+
+# Control-shell changes require the framework phase. Dynamic Turn/runtime/generated
+# state is excluded in audit_routes.py before these patterns are applied.
+framework_globs = [
+  "AGENTS.md",
+  "AGENTS.override.md",
+  ".agent-project-control/framework.yaml",
+  ".agent-project-control/routing.toml",
+  ".agent-project-control/rules/**",
+  ".agent-project-control/scripts/**",
+  ".agent-project-control/interfaces/**",
+  ".agent-project-control/skills/**",
+  ".agent-project-control/design/**",
+  ".agent-project-control/DESIGN.md",
+  ".agent-project-control/templates/**",
+]
+
+[audit.events.external-tool]
+phases = ["tools"]
+
+[audit.events.browser]
+phases = ["tools"]
+
+[audit.events.parallel-agent]
+phases = ["tools"]
+
+[audit.events.verification]
+phases = ["verification"]
+
+[audit.events.delivery]
+phases = ["delivery"]
+
+[audit.events.framework-change]
+phases = ["framework"]
+
+[audit.events.finalization]
+phases = ["finalization"]

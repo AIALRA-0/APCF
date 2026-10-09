@@ -1,0 +1,32 @@
+name: Core integrity
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile managed Python scripts
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for path in sorted(Path('.agent-project-control/scripts').glob('*.py')):
+              compile(path.read_bytes(), str(path), 'exec')
+          print('PASS: managed Python syntax')
+          PY
+      - name: Canonical and metadata lint
+        run: python -B .agent-project-control/scripts/lint_framework.py
+      - name: Design baseline contract
+        run: python -B .agent-project-control/scripts/design_contract.py --check
+      - name: Report contract smoke
+        run: python -B .agent-project-control/scripts/report_contract_selfcheck.py

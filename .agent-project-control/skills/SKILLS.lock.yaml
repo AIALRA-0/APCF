@@ -1,0 +1,24 @@
+# APCF-META {"schema":1,"visibility":"public"}
+schema: 1
+skills:
+  - id: github-readme-standardizer
+    source: AIALRA-0/github-readme-standardizer
+    requested_ref: main
+    resolved_commit: c97e249eaae1a8c4257aab652739b6de0c363b7e
+    required: true
+    triggers:
+      - README.md
+      - README.en.md
+  - id: github-safe-publish
+    source: AIALRA-0/agent-github-safe-publish
+    requested_ref: local-snapshot-v2.0.2
+    resolved_commit: null
+    install_mode: pinned-local
+    skill_file_sha256: 1a92341ee1b51d8a21bb1e0b6725d3f25012bfdb406d2e7c9ed82873f63f031e
+    required: false
+    triggers:
+      - GitHub/Git-remote publication explicitly authorized by the user
+notes:
+  - "README 专用技能使用完整仓库，不只复制 SKILL.md"
+  - "Writing v0.1 和 Style v0.1 已由本地 standards/ 与 interfaces/ 正式接入，不伪造外部 Skill 版本依赖"
+  - "github-safe-publish 当前为本地已安装的 v2.0.2 快照：按完整 SKILL.md SHA 校验，不伪造 Git commit，不自动更新或授权推送"

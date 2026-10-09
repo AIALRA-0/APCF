@@ -1,0 +1,4 @@
+# APCF-META {"schema":1,"visibility":"public"}
+# Locked text assets require stable bytes across Git checkout
+RULES.md text eol=lf
+profiles/tool-workbench-2.3.1/tokens.json text eol=lf

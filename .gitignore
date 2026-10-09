@@ -1,0 +1,19 @@
+# APCF-META {"schema":1,"visibility":"public"}
+.agent-project-control/runtime/testbed/**
+.agent-project-control/runtime/runs/**
+.agent-project-control/runtime/downloads/**
+.agent-project-control/runtime/tmp/**
+.agent-project-control/runtime/cache/**
+.agent-project-control/runtime/large/**
+.agent-project-control/runtime/distribution/**
+!.agent-project-control/runtime/testbed/.apcf-dir.yaml
+!.agent-project-control/runtime/runs/.apcf-dir.yaml
+!.agent-project-control/runtime/downloads/.apcf-dir.yaml
+!.agent-project-control/runtime/tmp/.apcf-dir.yaml
+!.agent-project-control/runtime/cache/.apcf-dir.yaml
+!.agent-project-control/runtime/large/.apcf-dir.yaml
+!.agent-project-control/runtime/distribution/.apcf-dir.yaml
+.codex/skills/*
+!.codex/skills/.apcf-dir.yaml
+__pycache__/
+*.pyc

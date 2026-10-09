@@ -1,0 +1,30 @@
+name: Bug report
+description: A reproducible APCF Core defect
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not disclose secrets, private prompts, project paths or user data in this public form."
+  - type: input
+    id: version
+    attributes:
+      label: Release version / SHA
+      placeholder: v0.3.0-closeout-v2
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps (synthetic data only)
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Relevant non-sensitive logs and failing tests

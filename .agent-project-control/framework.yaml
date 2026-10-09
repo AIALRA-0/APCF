@@ -1,0 +1,20 @@
+# APCF-META {"schema":1,"visibility":"public"}
+schema_version: "0.3.0"
+framework_name: "Agent Project Control Framework"
+framework_slug: "agent-project-control"
+framework_directory: ".agent-project-control"
+metadata_tag: "APCF-META"
+directory_marker: ".apcf-dir.yaml"
+sidecar_suffix: ".apcf-meta.yaml"
+template_source: false
+status: "uninitialized"
+agent_entry: "AGENTS.md"
+rule_index: ".agent-project-control/rules/INDEX.md"
+routing_contract: ".agent-project-control/routing.toml"
+design_index: ".agent-project-control/design/INDEX.md"
+design_baseline_lock: ".agent-project-control/design/BASELINES.lock.yaml"
+writing_standard_interface: ".agent-project-control/interfaces/WRITING_STANDARD.md"
+skill_lock: ".agent-project-control/skills/SKILLS.lock.yaml"
+parallel_agent_max_depth: 1
+visibility_protocol: 1
+repository_visibility: "private"

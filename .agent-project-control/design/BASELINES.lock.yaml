@@ -1,0 +1,16 @@
+# APCF-META {"schema":1,"visibility":"public"}
+schema: 1
+rules_id: apcf-shared-ui-ux
+rules_version: "v0.1"
+rules_path: ".agent-project-control/design/RULES.md"
+canonical_rules_sha256: "b46d962b7db4718303de7865221f08ab6ba96855c86953122ea396d64ac101b9"
+source_package_sha256: "0b1d632246b4eac5aeb5a6935cfb5747d2ddf64625fa436ff4375014d792238f"
+source_design_sha256: "4947b404317234b9631c7583544d887d8ced14f4c5510f3bea9a11f11d4e406f"
+profile_id: "tool-workbench-2.3.1"
+profile_version: "2.3.1"
+auto_adopt: false
+profile_path: ".agent-project-control/design/profiles/tool-workbench-2.3.1/PROFILE.md"
+tokens_path: ".agent-project-control/design/profiles/tool-workbench-2.3.1/tokens.json"
+tokens_sha256: "808f187ff65d76cada1157aec8eaac49fb880b26888e02e8625a6b9f312e7ea0"
+reference_archive_path: ".agent-project-control/design/profiles/tool-workbench-2.3.1/reference-template.zip"
+reference_archive_sha256: "e709546efb2f2758f7bf1453055d9eb5a5239998d3dd764adb1a022c0a4c0c38"
