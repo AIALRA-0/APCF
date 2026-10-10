@@ -160,6 +160,30 @@ def assert_fixture_git_root(fixture):
     if query.returncode or Path(query.stdout.strip()).resolve()!=fixture:
         raise RuntimeError('fixture Git root mismatch; no synthetic Git write permitted')
 
+_FIXTURE_GIT_PROCESS_CONFIG = None
+
+
+def configure_fixture_git_longpaths(fixture):
+    """Use only this selfcheck process's owned Windows Git configuration.
+
+    Git for Windows consults the global-source setting before its repository-local
+    and command-line overrides for this deep path case. This file is not the user's
+    global config: it lives in the first verified private fixture and is inherited
+    only by this selfcheck's children, then removed with that fixture.
+    """
+    global _FIXTURE_GIT_PROCESS_CONFIG
+    fixture = Path(fixture).resolve()
+    assert_fixture_git_root(fixture)
+    if os.name == 'nt' and _FIXTURE_GIT_PROCESS_CONFIG is None:
+        # main deliberately removes CASE/.git and empties CASE/runtime before
+        # the historical matrices; keep this owned config beside CASE instead.
+        config = CASE.parent / (RUN_ID + '-git-longpaths.config')
+        with config.open('x', encoding='utf-8', newline='\n') as stream:
+            stream.write('# APCF-META {"schema":1,"visibility":"private"}\n[core]\n    longpaths = true\n')
+        _FIXTURE_GIT_PROCESS_CONFIG = config
+        os.environ['GIT_CONFIG_GLOBAL'] = str(config)
+
+
 def remove_readonly(func,path,exc):
     if not isinstance(exc[1],PermissionError): raise exc[1]
     Path(path).chmod(stat.S_IWRITE|stat.S_IREAD); func(path)
@@ -1171,7 +1195,7 @@ activity.record_semantic_review(tr, observations, ['evidence/selfcheck-semantic-
                          'src/nested/server.py': b'print("nested")\n'}
         for rel, content in initial_files.items():
             path = fixture / rel; mark(path.parent); path.write_bytes(content)
-        git('init', '-q'); git('config', 'user.name', 'APCF synthetic test'); git('config', 'user.email', 'synthetic@example.invalid')
+        git('init', '-q'); configure_fixture_git_longpaths(fixture); git('config', 'user.name', 'APCF synthetic test'); git('config', 'user.email', 'synthetic@example.invalid')
         git('config', 'core.autocrlf', 'false'); git('config', 'core.hooksPath', '.git/hooks')
         git('add', '--all'); git('commit', '-q', '-m', 'Synthetic baseline')
         invoke(1, 'new_iteration.py', '--title', 'post-route-audit', '--objective', 'Isolated Step 1D matrix')
@@ -1507,7 +1531,7 @@ def main():
     prepare_synthetic_skills(CASE)
     # Core publication audit requires the same valid Git HEAD from Turn creation onward.
     subprocess.run(['git', 'init', '-q', str(CASE)], check=True)
-    assert_fixture_git_root(CASE)
+    configure_fixture_git_longpaths(CASE)
     for key, value in [('user.name', 'APCF synthetic test'), ('user.email', 'synthetic@example.invalid'), ('core.hooksPath', '.git/hooks')]:
         subprocess.run(['git', '-C', str(CASE), 'config', key, value], check=True)
     subprocess.run(['git', '-C', str(CASE), 'commit', '-q', '--allow-empty', '-m', 'Synthetic publication Gate baseline'], check=True)
@@ -1742,7 +1766,7 @@ def main():
     run('bootstrap.py', native, expected=1)
     run('lint_framework.py')
     subprocess.run(['git', 'init', '-q', str(CASE)], check=True)
-    assert_fixture_git_root(CASE)
+    configure_fixture_git_longpaths(CASE)
     marker=CASE/'.agent-project-control/runtime/testbed/nested/.apcf-dir.yaml'
     mark(marker.parent)
     ignored=subprocess.run(['git','-C',str(CASE),'check-ignore',str(marker)],capture_output=True,text=True)
@@ -2431,7 +2455,7 @@ def check_gate_routes():
             path = fixture / rel
             mark(path.parent)
             path.write_bytes(data)
-        git('init', '-q'); git('config', 'user.name', 'APCF synthetic test'); git('config', 'user.email', 'synthetic@example.invalid')
+        git('init', '-q'); configure_fixture_git_longpaths(fixture); git('config', 'user.name', 'APCF synthetic test'); git('config', 'user.email', 'synthetic@example.invalid')
         git('config', 'core.autocrlf', 'false'); git('config', 'core.hooksPath', '.git/hooks')
         git('add', '--all'); git('commit', '-q', '-m', 'Synthetic Gate baseline')
         invoke(1, 'new_iteration.py', '--title', 'gate-kernel', '--objective', 'Isolated Step 1E-A matrix')
@@ -2786,6 +2810,7 @@ def check_core_profiles_bootstrap():
             src.write_text("body { color: black; }\n", encoding="utf-8")
         prepare_synthetic_skills(fixture)
         subprocess.run(["git", "init", "-q", str(fixture)], check=True)
+        configure_fixture_git_longpaths(fixture)
         git("config", "user.name", "APCF synthetic test")
         git("config", "user.email", "synthetic@example.invalid")
         git("config", "core.autocrlf", "false")
@@ -3140,7 +3165,7 @@ def check_core_entrypoints():
             (d / 'theme.css').write_text('body {}\n', encoding='utf-8')
         mark(fixture / 'src')
         (fixture / 'src/server.py').write_text('print("baseline")\n', encoding='utf-8')
-        git('init', '-q'); git('config', 'user.name', 'APCF synthetic test'); git('config', 'user.email', 'synthetic@example.invalid')
+        git('init', '-q'); configure_fixture_git_longpaths(fixture); git('config', 'user.name', 'APCF synthetic test'); git('config', 'user.email', 'synthetic@example.invalid')
         git('config', 'core.autocrlf', 'false'); git('config', 'core.hooksPath', '.git/hooks')
         git('add', '--all'); git('commit', '-q', '-m', 'Synthetic core entrypoint baseline')
         call(26, 'new_iteration.py', '--title', 'core-entrypoints', '--objective', 'Step 1E-B real entrypoint matrix')
@@ -3618,6 +3643,9 @@ if __name__ == '__main__':
                      'traceback': [str(frame) for frame in traceback.extract_tb(exc.__traceback__)]})
         raise
     finally:
+        if _FIXTURE_GIT_PROCESS_CONFIG is not None:
+            # Only this run's exclusively-created file is removed.
+            _FIXTURE_GIT_PROCESS_CONFIG.unlink(missing_ok=True)
         summary = store_run(ROOT / '.agent-project-control/runtime/runs', ROWS,
                             outcome, run_id=RUN_ID)
         print('selfcheck run:', summary['run_id'], 'outcome:', outcome,
