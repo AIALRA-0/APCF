@@ -1,0 +1,21 @@
+.agent-project-control/scripts/writing_guard.py
+  s_0e8ff61e9358f0::t_72a082be500705 354-358
+.agent-project-control/scripts/writing_guard_selfcheck.py
+  s_0e8ff61e9358f0::t_2f30a48741d279 189-220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cdf05e3cc9e751500282d207c7e259d9e783403a",
+  "prompts": {},
+  "sessions": {
+    "s_0e8ff61e9358f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10f02-00e5-7440-8971-e8ffd0d490e7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "AIALRA-0 <aialra@163.com>"
+    }
+  }
+}
