@@ -186,6 +186,38 @@ class SessionBoundWriting(unittest.TestCase):
             self.assertTrue(G.context_errors(tr,rel))
 
 
+class DocumentedCheckCLI(unittest.TestCase):
+    def report(self):
+        from report_contract import SECTION_TITLES
+        bodies={0:'- current: `IT-0001`',1:'本例说明当前检查',2:TERM}
+        return '\n\n'.join('## '+str(i)+'. '+title+'\n\n'+bodies.get(i,'当前没有其他事项') for i,title in enumerate(SECTION_TITLES))+'\n'
+
+    def invoke(self,text):
+        import io
+        with tempfile.TemporaryDirectory() as d:
+            report=Path(d)/'TURN.md';record=Path(d)/'review.json'
+            report.write_text(text,encoding='utf-8');record.write_text(json.dumps(review()),encoding='utf-8')
+            args=['writing_guard.py','check','--report',str(report),'--review',str(record)]
+            with patch.object(sys,'argv',args),contextlib.redirect_stdout(io.StringIO()) as output:
+                code=G.main()
+            return code,output.getvalue()
+
+    def test_documented_turn_wrapper_uses_only_user_report(self):
+        text='# 1. TR-0001\n\n- **Status**：IN_PROGRESS\n- **Started**：20261010\n\n## 1.1. USER REPORT\n\n'+self.report()
+        code,output=self.invoke(text)
+        self.assertEqual(code,0,output);self.assertNotIn('Status',output)
+
+    def test_standalone_report_still_passes(self):
+        code,output=self.invoke(self.report());self.assertEqual(code,0,output)
+
+    def test_duplicate_report_marker_is_rejected(self):
+        code,output=self.invoke('## 1.1. USER REPORT\n'+self.report()+'\n## 1.1. USER REPORT\n'+self.report())
+        self.assertEqual(code,2);self.assertIn('exactly one',output)
+
+    def test_visible_nested_term_is_not_hidden_by_wrapper(self):
+        text='## 1.1. USER REPORT\n'+self.report().replace(TERM,'  '+TERM)
+        code,output=self.invoke(text);self.assertEqual(code,2);self.assertIn('二次缩进',output)
+
 def main():
     tests=unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__]);r=unittest.TextTestRunner(verbosity=2).run(tests)
     print(json.dumps({'suite':'writing-reliability-1','run':r.testsRun,'failures':len(r.failures),'errors':len(r.errors),'skipped':len(r.skipped),'scope':'synthetic deterministic checks and bound sources; real model/Windows/release not implied'},ensure_ascii=False))

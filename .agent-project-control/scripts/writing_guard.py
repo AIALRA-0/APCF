@@ -351,7 +351,11 @@ def main()->int:
         if a.command=='bind':bind(Path(a.turn));print('BOUND: current Turn, not host interception')
         elif a.command=='prepare':prepare(Path(a.turn),a.target,a.phase)
         elif a.command=='check':
-            report=read(Path(a.report));review=json.loads(Path(a.review).read_text(encoding='utf-8-sig')) if a.review else None
+            from terminology_review import USER_REPORT_RE, extract_user_report
+            report=read(Path(a.report))
+            if USER_REPORT_RE.search(report):
+                report=extract_user_report(report)
+            review=json.loads(Path(a.review).read_text(encoding='utf-8-sig')) if a.review else None
             e=content_errors(report,review)
             if e:print('\n'.join('FAIL: '+x for x in e));return 2
             print('FORMAT_CHECKED' if review is None else 'FORMAT_AND_REVIEW_BINDINGS_CHECKED; not independent semantic certification')
