@@ -2,7 +2,7 @@
 <div align="center">
 <h1>APCF 智能体项目控制框架（Agent Project Control Framework）</h1>
 <p>面向 Codex 的项目规则、执行范围、验收门禁与可复核交付记录</p>
-<p>框架数据模式 v0.3.0 · Writing、Style 与 Design 规则 v0.1</p>
+<p>核心候选 v0.3.2 · 框架数据模式 v0.3.0 · Writing、Style 与 Design 规则 v0.1</p>
 <p><a href="README.en.md">English</a></p>
 <p><a href="#workflow-map">工作流总览</a></p>
 </div>
@@ -195,9 +195,9 @@ python -B .agent-project-control/scripts/bootstrap.py ../my-project
 
 应改用新目录，或在现有 APCF 安装上按其规则继续工作
 
-核心分发模式（Core）面向其他项目的框架接入；它保留通用规则、共享设计基线，以及写作、风格和技能合同，并排除 `design/components/*` 下的可选界面组件
+- **核心分发模式（Core）**：面向其他项目接入的通用框架集合；它保留通用规则、共享设计基线，以及写作、风格和技能合同，并排除 `design/components/*` 下的可选界面组件；直观来说，它像接入项目所需的基础工具箱，里面不附带可选工作台
 
-可选附加组件（Add-on）是按项目需要单独安装的能力；Atlas 工作台属于这一类，应独立提供，不是 Core 的默认依赖，项目设计采用状态仍从 `UNRESOLVED` 开始
+- **可选附加组件（Add-on）**：按项目需要单独安装的能力；Atlas 工作台属于这一类，应独立提供，不是 Core 的默认依赖，项目设计采用状态仍从 `UNRESOLVED` 开始；直观来说，它像可单独添置的工作台配件，是否安装由项目需要决定
 
 生成不带可选组件、源仓 Git 历史、IT/TR、MAT、runtime 内容和 Skill 缓存的 Core 候选：
 
@@ -292,7 +292,7 @@ python -B .agent-project-control/scripts/publish_guard.py --turn-dir "$turn" --c
 
 ## 12 本阶段交付与轻量监督
 
-本阶段发行候选名为 `v0.3.1`，框架数据模式继续兼容 `0.3.0`；它以实测 r1 候选为来源，不把旧公开源码作为覆盖基线；核心验收版本与外部 Codex 版本必须分别记录
+本次核心候选为 `v0.3.2`，框架数据模式继续兼容 `0.3.0`；发行资产从当前最终源码构建，源仓本地可选组件注册、既有修复和历史保持原样；核心验收版本与外部 Codex 版本分别记录
 
 每轮通过 `scripts/supervisor.py` 在当前项目核对 CURRENT 和真实来源、输出阶段规范、检查计划、复用验收及正式收口；首次接入和恢复入口见 [执行监督接口](.agent-project-control/interfaces/EXECUTION_SUPERVISION.md) 与 [接入说明](APCF-START.md)
 
@@ -301,3 +301,13 @@ python -B .agent-project-control/scripts/publish_guard.py --turn-dir "$turn" --c
 旧 `tool-workbench-2.3.1` 仍是锁定历史 Profile，不是最新 Atlas；公开发行另提供可直接打开的 `examples/design-atlas/index.html`，最小 Core 不带演示应用，也不默认改写原项目的 UI
 
 完整 Pilot 用于核心发行与重要修订；普通任务按现行规则执行适用检查，不把框架全部自检变成每次修改的固定开销；执行时间与宿主未覆盖部分都需要在本轮报告中据实说明
+
+## 13 本次写作修订
+
+写作前与成稿复核前会分别输出短规则及最小案例，完整规范继续由既有接口加载；派生索引包含 29 条写作、15 条表达风格和 16 条设计提醒，不成为新的规范权威
+
+新建轮次自动绑定 `writing-reliability-1`；正在进行的维护轮次须实际重读更新后的规范、刷新原会话并显式绑定，旧冻结记录保持原字节；调用方法见 [写作接口](.agent-project-control/interfaces/WRITING_STANDARD.md)
+
+正式报告的术语表每项直接使用一级列表，分别说明真实名称、含义、本轮作用及准确直观比喻；检查器拒绝已知的二次缩进、合并术语、隐藏解释、名称错误、漏读与候选漂移，语义充分性仍须依据具体文字复核，不由结构通过自动证明
+
+源 `TEST.md` 和 `TURN.md` 保留机器定位注释；经原门禁核对的报告由输出入口移除已识别的独立注释行，保留可见事实、顺序及证据，源码与可见文本分别记录摘要；代码和引用中的原文保持不变

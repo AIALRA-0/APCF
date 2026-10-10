@@ -275,7 +275,7 @@ def _validate_meaning(report: str, term: str, meaning: object, label: str) -> li
             issues.append(label + ": current relevance is missing")
         if name_status == "VERIFIED":
             normalized = str(full_name).strip()
-            if _is_placeholder(normalized) or len(normalized.split()) < 2:
+            if _is_placeholder(normalized) or (len(normalized.split()) < 2 and meaning.get('term_kind') != 'proper_name'):
                 issues.append(label + ": verified full name is a placeholder or incomplete phrase")
         elif name_status == "UNVERIFIED":
             if str(full_name).strip():
@@ -307,6 +307,9 @@ def validate(report_text: str, review: dict, *, turn_dir=None) -> list[str]:
         issues.append('new narrative reports require visible-text terminology review schema 2')
     if review.get('schema') == SCHEMA:
         issues.extend(_visible_review_errors(report, review, turn_dir))
+    from writing_guard import enabled as writing_enabled, content_errors as writing_errors
+    if turn_dir is not None and writing_enabled(Path(turn_dir)):
+        issues.extend(writing_errors(report, review))
     if review.get("report_sha256") != sha256_text(report):
         issues.append("review was prepared for a different final USER REPORT SHA")
     if review.get("semantic_review_completed") is not True:

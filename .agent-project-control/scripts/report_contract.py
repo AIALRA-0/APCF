@@ -191,4 +191,6 @@ def validate_report(report, turn_dir):
 
     errors += bp_items(sections[9][1], "section 9")
     errors += validate_hierarchy(report)
+    from writing_guard import report_errors as writing_report_errors
+    errors += writing_report_errors(report, tr)
     return errors

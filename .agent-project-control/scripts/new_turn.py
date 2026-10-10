@@ -59,6 +59,8 @@ def _main():
         init_baseline(d)
         from execution_session import begin
         begin(d,rollback_state=rollback_state)
+        from writing_guard import bind as bind_writing_contract
+        bind_writing_contract(d)
         code, _ = enforce_entrypoint(entrypoint="bootstrap", turn_dir_raw=d)
         if code:
             raise SystemExit(code)

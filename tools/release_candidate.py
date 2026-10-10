@@ -20,7 +20,7 @@ import sys
 import unicodedata
 import zipfile
 
-VERSION='v0.3.1'
+VERSION='v0.3.2'
 ROOT_REQUIRED={'AGENTS.md','CURRENT.md','APCF-START.md','.agent-project-control/framework.yaml',
                '.agent-project-control/interfaces/APCF_ONBOARDING.md',
                '.agent-project-control/interfaces/EXECUTION_SUPERVISION.md',
@@ -137,10 +137,16 @@ def build(source,out):
 def verify(download):
     root=ordinary(download);obj=json.loads((root/'RELEASE-MANIFEST.json').read_text(encoding='utf-8'))
     if obj.get('schema')!=1 or obj.get('version')!=VERSION:raise ValueError('release version mismatch')
-    name=obj['archive']['name'];safe_member(name)
+    # Both current-source builders use schema 1; their archive field names differ.
+    keys=[key for key in ('archive','zip') if key in obj]
+    if len(keys)!=1:raise ValueError('manifest must identify exactly one archive')
+    archive=obj[keys[0]]
+    if not isinstance(archive,dict) or set(archive)!={'name','bytes','sha256'}:raise ValueError('invalid archive identity')
+    if type(archive['bytes']) is not int or archive['bytes']<=0 or not isinstance(archive['sha256'],str) or not re.fullmatch(r'[0-9a-f]{64}',archive['sha256']):raise ValueError('invalid archive size or digest')
+    name=archive['name'];safe_member(name)
     if '/' in name:raise ValueError('asset must have basename only')
     asset=root/name;raw=asset.read_bytes()
-    if len(raw)!=obj['archive']['bytes'] or digest(raw)!=obj['archive']['sha256']:raise ValueError('downloaded ZIP identity mismatch')
+    if len(raw)!=archive['bytes'] or digest(raw)!=archive['sha256']:raise ValueError('downloaded ZIP identity mismatch')
     check=(root/(name+'.sha256')).read_text().strip()
     if check!=digest(raw)+'  '+name:raise ValueError('SHA sidecar does not match actual archive')
     payload=zip_payload(raw);rows=obj['files']

@@ -33,6 +33,8 @@ jobs:
           python-version: '3.11'
       - name: Validate the public checkout
         run: python -B .agent-project-control/scripts/lint_framework.py
+      - name: Validate both current release manifest forms
+        run: python -B -m unittest discover -s tools -p test_release_candidate.py -v
       - name: Build two independent minimal candidates and run a cold Full Pilot
         shell: python
         run: |
@@ -41,8 +43,8 @@ jobs:
           base.mkdir()
           for name in ('a', 'b'):
               subprocess.run([sys.executable, '-B', 'tools/release_candidate.py', 'build', '--source', '.', '--output', str(base/name)], check=True)
-          a = base/'a/APCF-Deploy-v0.3.1.zip'
-          b = base/'b/APCF-Deploy-v0.3.1.zip'
+          a = base/'a/APCF-Deploy-v0.3.2.zip'
+          b = base/'b/APCF-Deploy-v0.3.2.zip'
           assert a.read_bytes() == b.read_bytes(), 'independent ZIP bytes differ'
           core = base/'a/core'
           assert not any(p.name == 'SKILL.md' for p in (core/'.codex/skills').rglob('*'))

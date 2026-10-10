@@ -158,6 +158,8 @@ def apply_file(turn, request_id, target: str, new_bytes: bytes, before_sha: str 
         expected=next((x for x in ticket['targets'] if x['path']==target),None)
         if expected is None: raise ValueError('target absent from sealed plan')
         old=path.read_bytes() if path.is_file() else None
+        from writing_guard import before_write as writing_before_write
+        writing_before_write(turn,target,old)
         actual=digest(old) if old is not None else None
         planned=expected['sha256'] if expected['state']=='file' else None
         if actual!=before_sha or actual!=planned:
@@ -186,9 +188,11 @@ def emit(turn, request_id, output: Path, *, observed=False):
     output=Path(output).resolve()
     if output.is_relative_to(CONTROL) and not output.is_relative_to(turn/'evidence'):
         raise ValueError('cannot use another control file as delivery output')
-    payload=(text.rstrip()+'\n').encode('utf-8')
+    from writing_guard import enabled as writing_enabled, reader_view
+    display=reader_view(text).rstrip() if writing_enabled(turn) else text.rstrip()
+    payload=(display+'\n').encode('utf-8')
     if observed:
-        if not output.is_file() or normalized(output.read_text()).rstrip()!=normalized(text).rstrip():
+        if not output.is_file() or normalized(output.read_text(encoding='utf-8-sig')).rstrip()!=normalized(display).rstrip():
             raise ValueError('actual response differs from approved TURN; do not replace it with a fresh summary')
         status='OBSERVED_TEXT_MATCH'
     else:
@@ -196,7 +200,7 @@ def emit(turn, request_id, output: Path, *, observed=False):
         from repair_io import exclusive
         exclusive(output,payload);status='PREPARED_FOR_DELIVERY'
     receipt={'schema':1,'status':status,'request_id':session['request_id'],'report_sha256':text_digest(text),
-             'output_sha256':digest(output.read_bytes()),'timestamp':now(),
+             'output_sha256':digest(output.read_bytes()),'visible_report_sha256':text_digest(display),'timestamp':now(),
              'transport':'not authenticated; compare validates captured text, not an actual user receipt'}
     private_json(turn/'evidence/delivery-text.json',receipt)
     return receipt

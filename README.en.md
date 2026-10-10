@@ -2,7 +2,7 @@
 <div align="center">
 <h1>Agent Project Control Framework (APCF)</h1>
 <p>Project rules, scoped execution, evidence-based checks, and reviewable handoff for Codex</p>
-<p>Framework schema v0.3.0 · Writing, Style, and Design rules v0.1</p>
+<p>Core candidate v0.3.2 · Framework schema v0.3.0 · Writing, Style, and Design rules v0.1</p>
 <p><a href="README.md">简体中文</a></p>
 <p><a href="README.md#workflow-map">Workflow diagram</a></p>
 </div>
@@ -171,9 +171,9 @@ python -B .agent-project-control/scripts/bootstrap.py ../my-project
 
 Installation preserves existing source and configuration and adds `AGENTS.md`, `CURRENT.md`, `.agent-project-control/`, and empty `.codex` metadata directories. The target’s parent directory must already exist. If the target already has `AGENTS.md`, `CURRENT.md`, `.agent-project-control/`, or `.aialra/`, installation refuses before writing and does not remove or overwrite those objects. Choose a new directory or continue under the existing APCF installation
 
-Core distribution is intended for adopting the shared framework in another project. It keeps the general rules, shared design baseline, and Writing, Style, and Skill contracts, while excluding optional UI components under `design/components/*`
+- **Core distribution**: the shared framework for adoption in another project. It keeps the general rules, shared design baseline, and Writing, Style, and Skill contracts, while excluding optional UI components under `design/components/*`. Think of it as the basic toolbox for project adoption, without an optional workbench
 
-An Add-on is a separately installed optional capability. The Atlas workbench belongs in this category and is not a default Core dependency. Project design adoption still starts as `UNRESOLVED`
+- **Add-on**: a separately installed optional capability. The Atlas workbench belongs in this category and is not a default Core dependency. Project design adoption still starts as `UNRESOLVED`. Think of it as a workbench accessory that a project can choose to add
 
 To generate a Core candidate without optional components, source Git history, development IT/TR records, materials, runtime contents, or cached Skills:
 
@@ -256,7 +256,7 @@ Request identity and guarded writes constrain calls made through these entrypoin
 
 ## 12 Stage release and lightweight supervision
 
-The release candidate is `v0.3.1`; the framework data schema remains compatible with `0.3.0`. Its source is the verified r1 candidate, not the older public branch. Record Core and external Codex versions separately.
+The Core candidate is `v0.3.2`; the framework data schema remains compatible with `0.3.0`. Release assets are built from the current final source; deployment leaves local optional-component registration, valid repairs, and source history intact. The Core package excludes source history. Record Core and external Codex versions separately.
 
 `scripts/supervisor.py` checks CURRENT and its actual source, emits phase-specific rules, checks the pre-write plan, and reuses existing verification and finalization. See the [supervision interface](.agent-project-control/interfaces/EXECUTION_SUPERVISION.md) and [onboarding entry](APCF-START.md).
 
@@ -265,3 +265,13 @@ Its receipt records observations, not certified understanding or independent rev
 The locked `tool-workbench-2.3.1` remains a historical Profile, not the latest Atlas. The public release separately exposes `examples/design-atlas/index.html`; the minimal Core does not include the demo or automatically restyle an existing application.
 
 Full Pilot belongs to release and significant Core validation. Ordinary work uses the checks applicable under the canonical rules rather than repeating all framework selfchecks. Record real overhead and untested host boundaries.
+
+## 13 Writing revision
+
+Preparation before drafting and before reviewing emits short rules and minimal examples; existing interfaces still load the full authoritative standards. The derived index contains 29 Writing, 15 Style, and 16 Design reminders, without becoming another authority.
+
+New turns bind `writing-reliability-1` automatically. An ongoing maintenance turn must actually reread changed standards, refresh its existing session, and bind explicitly; frozen historical records keep their bytes. See the [writing interface](.agent-project-control/interfaces/WRITING_STANDARD.md) for calls.
+
+Each report glossary term is a separate first-level list item with its verified name, meaning, current relevance, and accurate analogy. Checks reject known nesting, merged terms, hidden explanations, naming errors, missing reads, and candidate drift. Semantic sufficiency still requires review of actual text; structural success cannot certify it.
+
+Source `TEST.md` and `TURN.md` retain machine location comments. After the original gates approve a report, the output entry removes recognized standalone comments while preserving visible facts, order, and evidence. Source and visible output have separate hashes; literal content in code and quotations remains unchanged.

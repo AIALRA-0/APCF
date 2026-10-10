@@ -588,7 +588,7 @@ def check_router(root, record):
         out, sources = call(9, 0, *readme_args)
         assert 'capabilities: writing, style, human-readable, readme\n' in out
         assert sources == [mod('04-tools-parallel.md'), mod('06-framework-contract.md'),
-                           WRITING_INTERFACE, WRITING_SOURCE, STYLE_INTERFACE, STYLE_SOURCE,
+                           WRITING_INTERFACE, WRITING_SOURCE, '.agent-project-control/standards/RULE-ACTIVATION-v0.1.md', '.agent-project-control/standards/WRITING-MINIMAL-EXAMPLES.md', STYLE_INTERFACE, STYLE_SOURCE,
                            '.agent-project-control/skills/SKILLS.lock.yaml',
                            '.codex/skills/github-readme-standardizer/SKILL.md']
         for rel in [WRITING_INTERFACE, STYLE_INTERFACE]:
@@ -631,7 +631,7 @@ def check_router(root, record):
         out, sources = call(22, 0, '--phase', 'scope', '--target', 'README.md', '--target', css_target)
         assert len(sources) == len(set(sources))
         assert set(sources) == {mod('02-execution-scope.md'), mod('06-framework-contract.md'), *DESIGN_SOURCES,
-                                WRITING_INTERFACE, WRITING_SOURCE, STYLE_INTERFACE, STYLE_SOURCE,
+                                WRITING_INTERFACE, WRITING_SOURCE, '.agent-project-control/standards/RULE-ACTIVATION-v0.1.md', '.agent-project-control/standards/WRITING-MINIMAL-EXAMPLES.md', STYLE_INTERFACE, STYLE_SOURCE,
                                 '.agent-project-control/skills/SKILLS.lock.yaml',
                                 '.codex/skills/github-readme-standardizer/SKILL.md'}
         assert '.codex/skills/github-safe-publish/SKILL.md' not in sources

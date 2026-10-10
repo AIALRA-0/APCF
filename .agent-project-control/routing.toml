@@ -42,7 +42,7 @@ dependencies = ["writing", "style"]
 [capabilities.writing]
 enabled = true
 modules = ["06-framework-contract.md"]
-files = [".agent-project-control/interfaces/WRITING_STANDARD.md", ".agent-project-control/standards/human-readable-chinese-writing-v0.1.md"]
+files = [".agent-project-control/interfaces/WRITING_STANDARD.md", ".agent-project-control/standards/human-readable-chinese-writing-v0.1.md", ".agent-project-control/standards/RULE-ACTIVATION-v0.1.md", ".agent-project-control/standards/WRITING-MINIMAL-EXAMPLES.md"]
 status_files = [".agent-project-control/interfaces/WRITING_STANDARD.md"]
 status_regex = '^- \*\*状态\*\*：`([^`]+)`'
 resolved_values = ["RESOLVED"]

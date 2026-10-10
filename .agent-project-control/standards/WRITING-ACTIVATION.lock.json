@@ -1,0 +1,17 @@
+{
+  "contract": "writing-reliability-1",
+  "files": {
+    ".agent-project-control/design/RULES.md": "b46d962b7db4718303de7865221f08ab6ba96855c86953122ea396d64ac101b9",
+    ".agent-project-control/standards/RULE-ACTIVATION-v0.1.md": "7d71b82c99f21d4a070f5baf0c5d47294fa3dd79c01065bbf097dd236edfdea6",
+    ".agent-project-control/standards/WRITING-MINIMAL-EXAMPLES.md": "b2ad93875412ef4e1cf788764b6e63005f3873170a24f11211e7dccd9ef8f1c9",
+    ".agent-project-control/standards/human-readable-chinese-style-v0.1.md": "97f49d1a670616b8546ed5eb1f1dfca4f45ec48d49d791a9c8c41662c3e03d76",
+    ".agent-project-control/standards/human-readable-chinese-writing-v0.1.md": "f51fbef6a61f1df46b9d48ca959755665f24672754073b9f17f98828ade833d7"
+  },
+  "limits": "checks are mechanical and author review evidence; not automatic human understanding",
+  "rules": {
+    "Design": 16,
+    "Style": 15,
+    "Writing": 29
+  },
+  "schema": 1
+}

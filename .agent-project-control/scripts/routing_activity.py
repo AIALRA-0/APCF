@@ -600,7 +600,7 @@ def semantic_review(turn_dir: Path, targets: list[str]) -> tuple[list[str], list
 
 
 def evidence_snapshot(turn_dir: Path) -> dict:
-    names = ('workflow.json', 'semantic-review.json', 'content-review.json', 'checks.jsonl', 'prose-review.json', 'execution-session.json')
+    names = ('workflow.json', 'semantic-review.json', 'content-review.json', 'checks.jsonl', 'prose-review.json', 'execution-session.json', 'writing.json')
     snapshot = {name: sha256_file(turn_dir / 'evidence' / name)
                 for name in names if (turn_dir / 'evidence' / name).is_file()}
     review_path = turn_dir / 'evidence/content-review.json'
@@ -662,6 +662,10 @@ def record_content_review(turn_dir_raw, target: str, capabilities: list[str],
     except (OSError, UnicodeError, ValueError) as exc:
         raise ActivityError('final USER REPORT cannot be reviewed: ' + str(exc)) from exc
     if report is not None:
+        from writing_guard import report_errors as writing_report_errors
+        if result=='PASS':
+            writing_defects=writing_report_errors(report,turn_dir)
+            if writing_defects:raise ActivityError('; '.join(writing_defects))
         if 'APCF-FACTS ' in report and result=='PASS':
             from prose_review import validate_review_file
             defects=validate_review_file(report,turn_dir)
