@@ -1,0 +1,75 @@
+tools/test_release_candidate.py
+  s_0e8ff61e9358f0::t_61f140b02e0068 1-42
+.github/workflows/core-ci.yml
+  s_0e8ff61e9358f0::t_61f140b02e0068 36-37,46-47
+tools/release_candidate.py
+  s_0e8ff61e9358f0::t_61f140b02e0068 23,140-146,149
+.agent-project-control/core-members.json
+  s_0e8ff61e9358f0::t_627caa9242da10 119-120,125-128
+.agent-project-control/core-members.json.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_9c3274f686556b 4
+.agent-project-control/generated/TREE.html
+  s_0e8ff61e9358f0::t_229bf70c27a4c0 5
+.agent-project-control/generated/TREE.md
+  s_0e8ff61e9358f0::t_0844c4e56cbe7a 113-114,119-122
+.agent-project-control/interfaces/WRITING_STANDARD.md
+  s_0e8ff61e9358f0::t_d7492fc1842d7f 23-31
+.agent-project-control/routing.toml
+  s_0e8ff61e9358f0::t_1746f201b8ed6a 45
+.agent-project-control/rules/01-context-state.md
+  s_0e8ff61e9358f0::t_9db657087b9292 337
+.agent-project-control/scripts/execution_session.py
+  s_0e8ff61e9358f0::t_15288447b449c2 161-162,191-193,195,203
+.agent-project-control/scripts/new_turn.py
+  s_0e8ff61e9358f0::t_2cbe8d7deb8ad2 62-63
+.agent-project-control/scripts/pilot_readiness.py
+  s_0e8ff61e9358f0::t_948ed7ec355571 81
+.agent-project-control/scripts/report_contract.py
+  s_0e8ff61e9358f0::t_4744bd694c1786 194-195
+.agent-project-control/scripts/routing_activity.py
+  s_0e8ff61e9358f0::t_4e8323661d9bf9 603,665-668
+.agent-project-control/scripts/selfcheck.py
+  s_0e8ff61e9358f0::t_f6d66dbad54377 591,634
+.agent-project-control/scripts/terminology_review.py
+  s_0e8ff61e9358f0::t_add2716393e168 278,310-312
+.agent-project-control/scripts/writing_guard.py
+  s_0e8ff61e9358f0::t_a05e0fd82c30d8 1-366
+.agent-project-control/scripts/writing_guard_selfcheck.py
+  s_0e8ff61e9358f0::t_c98372060f9988 1-193
+.agent-project-control/standards/LOCK.yaml
+  s_0e8ff61e9358f0::t_52dac8e613bb0b 5
+.agent-project-control/standards/RULE-ACTIVATION-v0.1.md
+  s_0e8ff61e9358f0::t_f93ddf6f218492 1-73
+.agent-project-control/standards/WRITING-ACTIVATION.lock.json
+  s_0e8ff61e9358f0::t_ca95b5ebaeab44 1-17
+.agent-project-control/standards/WRITING-ACTIVATION.lock.json.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_b2c4f260453332 1-4
+.agent-project-control/standards/WRITING-MINIMAL-EXAMPLES.md
+  s_0e8ff61e9358f0::t_de8987c7012631 1-38
+.agent-project-control/standards/human-readable-chinese-writing-v0.1.md
+  s_0e8ff61e9358f0::t_532959c18ba8c4 233
+README.en.md
+  s_0e8ff61e9358f0::t_ba62714383392a 5,174,176,259,268-277
+README.md
+  s_0e8ff61e9358f0::t_414aac95b584a7 5,198,200,295,304-313
+docs/security/publication-risk-notes.md
+  s_0e8ff61e9358f0::t_2a3149e6fb936b 1-10
+examples/run_demo.py
+  s_0e8ff61e9358f0::t_11c8cbda6e7cf1 2,4-5,8,11-25,27,29-32,34,37-53,55-74,76-118,121-126,128-129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "39ea4e7313a9987069d4c45a00d7961b19a65c7b",
+  "prompts": {},
+  "sessions": {
+    "s_0e8ff61e9358f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10f02-00e5-7440-8971-e8ffd0d490e7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "AIALRA-0 <aialra@163.com>"
+    }
+  }
+}
