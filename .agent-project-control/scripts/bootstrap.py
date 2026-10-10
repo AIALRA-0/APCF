@@ -20,7 +20,7 @@ INDEX_TITLES = {
     "materials": "# 1. MAT 材料索引\n",
 }
 RUNTIME_DIRS = ["testbed", "runs", "downloads", "tmp", "cache", "large", "distribution"]
-ROOT_MARKERS = ["AGENTS.md", "CURRENT.md", ".agent-project-control", ".aialra"]
+ROOT_MARKERS = ["AGENTS.md", "CURRENT.md", "APCF-START.md", ".agent-project-control", ".aialra"]
 
 
 def _visibility(path: Path):
@@ -91,12 +91,11 @@ def populate_target(target: Path, profile: str | None = None) -> None:
     if any(target.iterdir()):
         raise SystemExit("FAIL: internal staging target must be empty")
 
-    shutil.copy2(ROOT / "AGENTS.md", target / "AGENTS.md")
-    shutil.copytree(
-        FRAMEWORK_ROOT,
-        target / ".agent-project-control",
-        ignore=lambda path, names: _ignore_framework(path, names, profile=profile),
-    )
+    from distribution_policy import copy_core
+    try:
+        copy_core(ROOT,target,install_only=True)
+    except (OSError,ValueError) as exc:
+        raise SystemExit('FAIL: explicit Core member policy rejected installation: '+str(exc))
 
     control = target / ".agent-project-control"
     for name in OPERATIONAL:
@@ -116,18 +115,18 @@ def populate_target(target: Path, profile: str | None = None) -> None:
         "# 1. 当前状态\n\n- **状态**：尚未开始项目执行轮次\n- **Latest TR**：不适用\n",
     )
 
-    for rel in [".codex/.apcf-dir.yaml", ".codex/skills/.apcf-dir.yaml"]:
-        source = ROOT / rel
-        if source.is_file():
-            destination = target / rel
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, destination)
-
     render_env = os.environ.copy()
     render_scripts = str(control / "scripts")
     render_env["PYTHONPATH"] = os.pathsep.join(
         value for value in (render_scripts, render_env.get("PYTHONPATH", "")) if value
     )
+    # 最小 Core 不携带可选组件，索引必须由目标中实际登记的组件派生
+    for action in ('--sync', '--check'):
+        subprocess.run(
+            [sys.executable, '-B', str(control / 'scripts' / 'design_contract.py'), action],
+            env=render_env,
+            check=True,
+        )
     subprocess.run(
         [sys.executable, "-B", str(control / "scripts" / "render_tree.py")],
         env=render_env,
@@ -188,19 +187,19 @@ def _identity(path: Path) -> tuple[int, int]:
 
 
 def _install_into_existing_project(target: Path, staging: Path) -> None:
-    created_dirs: list[Path] = []
+    created_dirs: list[tuple[Path, tuple[int, int]]] = []
     installed_files: list[tuple[Path, tuple[int, int]]] = []
-    installed_control: tuple[Path, tuple[int, int]] | None = None
     codex_dirs = [target / ".codex", target / ".codex" / "skills"]
     try:
         for directory in codex_dirs:
             if not directory.exists():
                 directory.mkdir()
-                created_dirs.append(directory)
+                created_dirs.append((directory, _identity(directory)))
 
         file_paths = [
             Path("AGENTS.md"),
             Path("CURRENT.md"),
+            Path("APCF-START.md"),
             Path(".codex/.apcf-dir.yaml"),
             Path(".codex/skills/.apcf-dir.yaml"),
         ]
@@ -209,51 +208,75 @@ def _install_into_existing_project(target: Path, staging: Path) -> None:
             destination = target / relative
             if destination.exists():
                 continue
-            os.link(source, destination)
-            installed_files.append((destination, _identity(destination)))
-            source.unlink()
+            # Create in the real destination so NTFS inherits its actual parent ACL.
+            # Exclusive creation preserves refusal to replace concurrent objects.
+            with destination.open('xb') as output:
+                installed_files.append((destination, _identity(destination)))
+                with source.open('rb') as input_stream:
+                    shutil.copyfileobj(input_stream, output)
 
+        # Native entry documents are not rewritten or guessed public. A missing
+        # classification gets a private hash sidecar; a real existing marker stays intact.
+        import hashlib
+        for name in ('README.md','README.en.md','TEMPLATE_SPEC.md','CODEX_PROMPT.md','CODEX_DEPLOY.md','PILOT_TEST_PLAN.md','VALIDATION.md'):
+            native=target/name;side=target/(name+'.apcf-meta.yaml')
+            if native.is_file() and parse_meta(native) is None and not side.exists():
+                if native.is_symlink() or side.is_symlink():raise ValueError('unsafe native document metadata path')
+                raw=native.read_bytes()
+                with side.open('xb') as stream:
+                    installed_files.append((side,_identity(side)))
+                    stream.write(('# APCF-META {"schema":1,"visibility":"private"}\nschema: 1\nvisibility: private\nsha256: '+hashlib.sha256(raw).hexdigest()+'\n').encode())
         staged_control = staging / ".agent-project-control"
         destination_control = target / ".agent-project-control"
-        staged_control.rename(destination_control)
-        installed_control = (destination_control, _identity(destination_control))
+        destination_control.mkdir()
+        created_dirs.append((destination_control, _identity(destination_control)))
+        for source in sorted(staged_control.rglob('*')):
+            destination = destination_control / source.relative_to(staged_control)
+            if source.is_dir():
+                destination.mkdir()
+                created_dirs.append((destination, _identity(destination)))
+            else:
+                with destination.open('xb') as output:
+                    installed_files.append((destination, _identity(destination)))
+                    with source.open('rb') as input_stream:
+                        shutil.copyfileobj(input_stream, output)
     except BaseException:
-        if installed_control is not None:
-            path, identity = installed_control
-            if path.exists() and _identity(path) == identity:
-                resolved = path.resolve()
-                if resolved.parent == target.resolve():
-                    shutil.rmtree(path)
         for path, identity in reversed(installed_files):
             if path.exists() and _identity(path) == identity:
                 path.unlink()
-        for directory in reversed(created_dirs):
+        for directory, identity in reversed(created_dirs):
             try:
-                directory.rmdir()
+                if directory.exists() and _identity(directory) == identity:
+                    directory.rmdir()
             except OSError:
                 pass
         raise
 
 
 def install_clean_shell(raw_target: str) -> Path:
+    """Install without replacing an existing directory or changing its ACL/mode.
+
+    Existing empty and populated roots both use the same per-object transaction.
+    A failed staged build never removes the caller's original root directory.
+    """
     _validate_source_framework()
-    target, existed, existed_empty = _preflight_target(raw_target)
+    target, existed, _ = _preflight_target(raw_target)
     staging = Path(tempfile.mkdtemp(prefix=f".{target.name}.apcf-staging-", dir=target.parent))
-    removed_empty_target = False
+    created_root = None
     try:
         populate_target(staging)
-        if existed:
-            _install_into_existing_project(target, staging)
-        else:
-            if existed_empty:
-                target.rmdir()
-                removed_empty_target = True
-            staging.rename(target)
+        if not existed:
+            target.mkdir()
+            created_root = _identity(target)
+        _install_into_existing_project(target, staging)
         print("PASS: clean control shell installed without source-template history")
         return target
     except BaseException:
-        if removed_empty_target and not target.exists():
-            target.mkdir()
+        if created_root is not None and target.exists() and _identity(target) == created_root:
+            try:
+                target.rmdir()  # Keep any unknown concurrent contents; never recurse.
+            except OSError:
+                pass
         raise
     finally:
         if staging.exists():

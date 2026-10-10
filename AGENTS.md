@@ -116,3 +116,9 @@
 - `05-delivery-lifecycle.md` → `R15, R16`
 - `06-framework-contract.md` → `R19, R21, R22, R23, R25, R26, R27, R28, R29, R30, R31`
 <!-- APCF-RULE-READBACK-END -->
+
+## 1.10. 核心修订接入与恢复入口
+
+首次接入、每个有效新请求、压缩恢复和切换目录时，读取 `.agent-project-control/interfaces/APCF_ONBOARDING.md`；它协调正式路由、当前请求与实际待发送文本，不取代六模块、Writing、Style 或 Design 正文
+
+当前发行增加 `.agent-project-control/interfaces/EXECUTION_SUPERVISION.md` 的轻量协调入口；每轮适用时读取它并复用原生命周期，不把该协作入口等同于桌面全部工具的不可绕过监督

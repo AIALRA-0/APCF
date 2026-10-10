@@ -17,49 +17,6 @@ from test_ledger import TEST_FORMAT_MARKER, parse_tests, serialize_v2, validate_
 from selfcheck_runlog import make_run_id, store_run
 
 
-def require_fixture_git_identity(root):
-    # Windows MAX_PATH can make Git discovery fall back to a parent repository.
-    # A test must never configure or commit a repository it does not own.
-    fixture_git_root = subprocess.check_output(
-        ['git', '-C', str(root), 'rev-parse', '--show-toplevel'],
-        text=True, encoding='utf-8').strip()
-    if Path(fixture_git_root).resolve() != Path(root).resolve():
-        raise RuntimeError('Selfcheck Git fixture identity mismatch; refusing parent repository writes: ' + fixture_git_root)
-
-
-def copy_fixture_root_document(source_root, target_root, name):
-    """Fixture documents belong to tests, never to the adopting product.
-
-    Keep actual rule/state inputs mandatory. README and ignore-file mutations
-    exercise controlled public documents so native product bytes, metadata and
-    private contents cannot become an accidental regression prerequisite.
-    """
-    source = source_root / name
-    target = target_root / name
-    if name in {'AGENTS.md', 'CURRENT.md'}:
-        if not source.is_file() or source.is_symlink():
-            raise RuntimeError('Missing or unsafe mandatory fixture input: ' + name)
-        shutil.copy2(source, target)
-        sidecar = source.with_name(source.name + '.apcf-meta.yaml')
-        if sidecar.is_file():
-            shutil.copy2(sidecar, target.with_name(target.name + '.apcf-meta.yaml'))
-    elif name in {'README.md', 'README.en.md', '.gitignore'} or not source.is_file():
-        if name == '.gitignore':
-            target.write_text('# APCF-META {"schema":1,"visibility":"public"}\n'
-                              '.agent-project-control/runtime/**\n.codex/skills/**\n', encoding='utf-8')
-        else:
-            target.write_text('<!-- APCF-META {"schema":1,"visibility":"public"} -->\n'
-                              '# 1. Synthetic framework regression document\n\n'
-                              'Agent Project Control Framework v0.3.0: this document belongs only to an isolated test.\n', encoding='utf-8')
-    else:
-        if source.is_symlink():
-            raise RuntimeError('Unsafe fixture document: ' + name)
-        shutil.copy2(source, target)
-        sidecar = source.with_name(source.name + '.apcf-meta.yaml')
-        if sidecar.is_file():
-            shutil.copy2(sidecar, target.with_name(target.name + '.apcf-meta.yaml'))
-
-
 WRITING_INTERFACE = '.agent-project-control/interfaces/WRITING_STANDARD.md'
 STYLE_INTERFACE = '.agent-project-control/interfaces/STYLE_STANDARD.md'
 WRITING_SOURCE = '.agent-project-control/standards/human-readable-chinese-writing-v0.1.md'
@@ -175,6 +132,33 @@ def _childenv(scripts_dir, base=None):
     if scripts_path not in entries:
         child['PYTHONPATH'] = os.pathsep.join([scripts_path, *entries])
     return child
+
+
+
+def seed_fixture_root(fixture):
+    """Preserve real instruction/state inputs, but synthesize fixture-owned documents.
+
+    A consuming project is not required to contain the template's README or test
+    plan. No real consumer file is modified, and missing AGENTS/CURRENT still fail.
+    """
+    fixture=Path(fixture)
+    for name in ('AGENTS.md', 'CURRENT.md'):
+        shutil.copyfile(ROOT/name, fixture/name)
+    (fixture/'.gitignore').write_text('.agent-project-control/runtime/\n.codex/skills/\n',encoding='utf-8',newline='\n')
+    for name in ('README.md','README.en.md','TEMPLATE_SPEC.md','CODEX_PROMPT.md','CODEX_DEPLOY.md','PILOT_TEST_PLAN.md','VALIDATION.md'):
+        (fixture/name).write_text('<!-- APCF-META {"schema":1,"visibility":"public"} -->\n# Agent Project Control Framework v0.3.0\n\nSynthetic fixture documentation, not project facts.\n',encoding='utf-8',newline='\n')
+
+def assert_fixture_git_root(fixture):
+    """Refuse parent-repository fallback before a synthetic fixture Git operation.
+
+    Windows path-length and alias failures must not stage or commit the maintainer's
+    real repository. Resolve both returned and requested roots before comparison.
+    """
+    fixture=Path(fixture).resolve()
+    query=subprocess.run(['git','rev-parse','--show-toplevel'],cwd=fixture,
+                         capture_output=True,text=True,encoding='utf-8',errors='replace')
+    if query.returncode or Path(query.stdout.strip()).resolve()!=fixture:
+        raise RuntimeError('fixture Git root mismatch; no synthetic Git write permitted')
 
 def remove_readonly(func,path,exc):
     if not isinstance(exc[1],PermissionError): raise exc[1]
@@ -732,32 +716,29 @@ def _skill_tree_snapshot(root):
     return entries
 
 
+
+def prepare_synthetic_skills(fixture):
+    """Finite routing fixtures, never installed into the source/user skill cache.
+
+    Core cold-start tests exercise mechanisms offline. A selected real skill must
+    separately pass the actual lock acquisition; these fake docs aren't that claim.
+    """
+    cache=fixture/'.codex/skills';cache.mkdir(parents=True,exist_ok=True)
+    entries=[]
+    for identity,source in [('github-readme-standardizer','AIALRA-0/github-readme-standardizer'),
+                            ('github-safe-publish','AIALRA-0/agent-github-safe-publish')]:
+        folder=cache/identity
+        folder.mkdir(parents=True,exist_ok=True)
+        text=('# Synthetic fixture: '+identity+'\n\nMechanism test only; no product skill or external delivery authorization.\n')
+        (folder/'SKILL.md').write_text(text,encoding='utf-8',newline='\n')
+        entries.append(f'  - id: {identity}\n    source: {source}\n    requested_ref: synthetic-fixture-only\n    resolved_commit: null\n    install_mode: pinned-local\n    skill_file_sha256: {hashlib.sha256(text.encode()).hexdigest()}\n    required: '+('true' if identity=='github-readme-standardizer' else 'false')+'\n')
+    (fixture/'.agent-project-control/skills/SKILLS.lock.yaml').write_text(
+        '# APCF-META {"schema":1,"visibility":"public"}\nschema: 1\nskills:\n'+''.join(entries),encoding='utf-8')
+
 def check_router_fixture():
-    skills_root = CASE / '.codex/skills'
-    sources = [
-        ROOT / '.codex/skills/github-readme-standardizer',
-        ROOT / '.codex/skills/github-safe-publish',
-    ]
-    targets = [skills_root / source.name for source in sources]
-    created = []
-    try:
-        for source, target in zip(sources, targets):
-            assert source.is_dir() and not source.is_symlink()
-            if target.exists() or target.is_symlink():
-                assert _skill_tree_snapshot(target) == _skill_tree_snapshot(source), (
-                    f'Preinstalled skill cache differs from source: {target.name}')
-                continue
-            assert target.resolve().is_relative_to(skills_root.resolve())
-            created.append(target)
-            shutil.copytree(source, target)
-            assert _skill_tree_snapshot(target) == _skill_tree_snapshot(source), (
-                f'Copied skill cache differs from source: {target.name}')
-        check_router(CASE, ROWS.append)
-    finally:
-        for target in reversed(created):
-            assert target.resolve().is_relative_to(skills_root.resolve())
-            if target.exists():
-                shutil.rmtree(target, onerror=remove_readonly)
+    prepare_synthetic_skills(CASE)
+    check_router(CASE, ROWS.append)
+
 
 def check_bootstrap_output(root, output):
     """Verify visible, complete Source bodies and the unique final success path."""
@@ -781,6 +762,13 @@ def check_bootstrap_output(root, output):
                               capture_output=True, text=True, encoding='utf-8', env=_childenv(scripts))
     assert verified.returncode == 0, (verified.stdout, verified.stderr)
     assert not (tr / 'evidence/gate-attempts.jsonl').exists()
+    session=tr/'evidence/execution-session.json'
+    if session.exists():
+        assert Path(root).resolve().is_relative_to(CASE.parent.resolve()), 'fixture conversion may never touch real project history'
+        row=json.loads(session.read_text())
+        assert row['project_root']==str(Path(root).resolve()) and row['request_sha256']==hashlib.sha256((tr/'REQUEST.md').read_bytes()).hexdigest()
+        ROWS.append({'case':'legacy-fixture-session-conversion','exit_code':0,'stdout':'New session validated; this disposable fixture deliberately replays a pre-v3 client','stderr':'','session':row})
+        session.unlink();session.with_name(session.name+'.apcf-meta.yaml').unlink()
     return tr
 
 
@@ -1092,6 +1080,7 @@ def check_post_route_audit():
         ROWS.append({'case': f'Step1D/{number}/assertions', 'exit_code': 0, 'stdout': 'PASS', 'stderr': '', **evidence})
 
     def git(*args):
+        if not args or args[0] != 'init': assert_fixture_git_root(fixture)
         result = subprocess.run(['git', '-C', str(fixture), *args], capture_output=True, text=True, encoding='utf-8')
         assert result.returncode == 0, (args, result.stdout, result.stderr)
         return result.stdout.strip()
@@ -1166,8 +1155,7 @@ activity.record_semantic_review(tr, observations, ['evidence/selfcheck-semantic-
     try:
         shutil.copytree(CASE / '.agent-project-control', fixture / '.agent-project-control',
                         ignore=shutil.ignore_patterns('runtime', 'iterations', 'materials', 'regressions', 'decisions', 'runbooks', '__pycache__'))
-        for name in ['AGENTS.md', 'README.md', 'README.en.md', '.gitignore', 'CURRENT.md']:
-            copy_fixture_root_document(ROOT, fixture, name)
+        seed_fixture_root(fixture)
         for name in ['iterations', 'materials', 'regressions', 'decisions', 'runbooks']:
             directory = fixture / '.agent-project-control' / name
             mark(directory)
@@ -1176,9 +1164,7 @@ activity.record_semantic_review(tr, observations, ['evidence/selfcheck-semantic-
             mark(fixture / '.agent-project-control/runtime' / name)
         mark(fixture / '.agent-project-control/runtime')
         mark(fixture / '.codex'); mark(fixture / '.codex/skills')
-        skill = ROOT / '.codex/skills/github-readme-standardizer'
-        assert skill.is_dir()
-        shutil.copytree(skill, fixture / '.codex/skills/github-readme-standardizer')
+        prepare_synthetic_skills(fixture)
         initial_files = {'src/server.py': b'print("initial")\n', 'src/preexisting.py': b'print("initial dirty target")\n',
                          'src/theme.css': b'body { color: black; }\n', 'src/view.tsx': b'export const View = () => null;\n',
                          'src/components/button.js': b'export const button = 1;\n', 'src/nested/AGENTS.md': b'# Nested synthetic instructions\n',
@@ -1472,7 +1458,7 @@ print(json.dumps({'targets':record['targets'],'tests':record['tests'],
             assert bad_contract != config.read_bytes()
             with mutate(config, bad_contract):
                 before_turns = set((fixture / '.agent-project-control/iterations').glob('IT-*/turns/TR-*'))
-                invoke(1, 'new_turn.py', '--title', 'baseline-failure', expected=1)
+                invoke(1, 'new_turn.py', '--title', 'baseline-failure', '--request-text', 'synthetic invalid-baseline request', expected=1)
                 assert set((fixture / '.agent-project-control/iterations').glob('IT-*/turns/TR-*')) == before_turns
         finally:
             for name in names:
@@ -1496,8 +1482,15 @@ def main():
     assert not CASE.exists(), 'Use an unused selfcheck directory'
     mark(CASE)
     excluded = {'runtime','iterations','regressions','decisions','runbooks','materials'}
-    for name in ['AGENTS.md','README.md','README.en.md','TEMPLATE_SPEC.md','CODEX_PROMPT.md','CODEX_DEPLOY.md','PILOT_TEST_PLAN.md','VALIDATION.md','.gitignore']:
-        copy_fixture_root_document(ROOT, CASE, name)
+    for src in ROOT.iterdir():
+        if src.is_file() and src.name in ['AGENTS.md','APCF-START.md','README.md','README.en.md','TEMPLATE_SPEC.md','CODEX_PROMPT.md','CODEX_DEPLOY.md','PILOT_TEST_PLAN.md','VALIDATION.md','.gitignore']:
+            shutil.copy2(src,CASE/src.name)
+    # Root documentation in this disposable fixture is synthetic even when the
+    # consumer owns a README mentioning APCF. Never infer permission from its text.
+    for name in ['README.md','README.en.md','TEMPLATE_SPEC.md','CODEX_PROMPT.md','CODEX_DEPLOY.md','PILOT_TEST_PLAN.md','VALIDATION.md']:
+        (CASE/name).write_text('<!-- APCF-META {"schema":1,"visibility":"public"} -->\n# Agent Project Control Framework v0.3.0\n\nSynthetic fixture documentation, not project facts.\n',encoding='utf-8',newline='\n')
+    if not (CASE/'.gitignore').is_file():
+        (CASE/'.gitignore').write_text('.agent-project-control/runtime/\n',encoding='utf-8',newline='\n')
     for src in (ROOT/'.agent-project-control').rglob('*'):
         rel=src.relative_to(ROOT/'.agent-project-control')
         if rel.parts[0] in excluded or '__pycache__' in rel.parts: continue
@@ -1511,10 +1504,10 @@ def main():
             (d/'INDEX.md').write_text('<!-- APCF-META {"schema":1,"visibility":"public"} -->\n# 1. Synthetic index\n',encoding='utf-8')
     for folder in ['testbed','runs','downloads','tmp','cache','large','distribution']: mark(CASE/'.agent-project-control/runtime'/folder)
     mark(CASE/'.codex'); mark(CASE/'.codex/skills')
-    shutil.copytree(ROOT/'.codex/skills/github-safe-publish', CASE/'.codex/skills/github-safe-publish')
+    prepare_synthetic_skills(CASE)
     # Core publication audit requires the same valid Git HEAD from Turn creation onward.
     subprocess.run(['git', 'init', '-q', str(CASE)], check=True)
-    require_fixture_git_identity(CASE)
+    assert_fixture_git_root(CASE)
     for key, value in [('user.name', 'APCF synthetic test'), ('user.email', 'synthetic@example.invalid'), ('core.hooksPath', '.git/hooks')]:
         subprocess.run(['git', '-C', str(CASE), 'config', key, value], check=True)
     subprocess.run(['git', '-C', str(CASE), 'commit', '-q', '--allow-empty', '-m', 'Synthetic publication Gate baseline'], check=True)
@@ -1694,12 +1687,20 @@ def main():
     run('state_integrity.py', expected=2)
     private_evidence=tr/'evidence/.apcf-dir.yaml'
     private_evidence.write_text(META,encoding='utf-8')
+    run('repair_current_state.py', expected=1)
+    assert not f.exists(), 'repair must not invent a finalized report'
+    f.write_bytes(saved_turn)
     run('repair_current_state.py')
     assert f.read_text(encoding='utf-8').split('## 1.1. USER REPORT',1)[1].strip()==safe_report.strip()
     assert private_evidence.read_text(encoding='utf-8')==META
     run('state_integrity.py')
     request=tr/'REQUEST.md'; saved_request=request.read_bytes()
-    for missing in [f,tr/'CHECKLIST.md',tr/'TEST.md',it/'ITERATION.md',request]: missing.unlink()
+    recovery_originals={p:p.read_bytes() for p in [f,tr/'CHECKLIST.md',tr/'TEST.md',it/'ITERATION.md',request]}
+    for missing in recovery_originals: missing.unlink()
+    run('repair_current_state.py', expected=1)
+    assert all(not p.exists() for p in recovery_originals), 'untrusted recovery fabricated history'
+    for missing,original in recovery_originals.items():
+        if missing!=request:missing.write_bytes(original)
     run('repair_current_state.py')
     run('state_integrity.py')
     assert not request.exists(), 'repair fabricated REQUEST.md'
@@ -1741,7 +1742,7 @@ def main():
     run('bootstrap.py', native, expected=1)
     run('lint_framework.py')
     subprocess.run(['git', 'init', '-q', str(CASE)], check=True)
-    require_fixture_git_identity(CASE)
+    assert_fixture_git_root(CASE)
     marker=CASE/'.agent-project-control/runtime/testbed/nested/.apcf-dir.yaml'
     mark(marker.parent)
     ignored=subprocess.run(['git','-C',str(CASE),'check-ignore',str(marker)],capture_output=True,text=True)
@@ -1833,8 +1834,17 @@ def main():
     native_bytes = b'print("native source unchanged")\n'
     native_source.write_bytes(native_bytes)
     native_source.with_name(native_source.name+'.apcf-meta.yaml').write_text(META,encoding='utf-8')
-    run('cleanup_runtime.py', '--all', '--apply')
+    cleanup_before={p:p.read_bytes() for p in (CASE/'.agent-project-control/runtime').rglob('*') if p.is_file()}
+    run('cleanup_runtime.py', '--all', '--apply', expected=1)
+    assert all(p.is_file() and p.read_bytes()==data for p,data in cleanup_before.items()), 'refused cleanup mutated evidence'
     runtime = CASE/'.agent-project-control/runtime'
+    # Owned disposable fixture teardown (not production cleanup authorization).
+    for directory in runtime.iterdir():
+        if directory.is_dir():
+            for p in list(directory.iterdir()):
+                if p.name!='.apcf-dir.yaml':
+                    shutil.rmtree(p,onerror=remove_readonly) if p.is_dir() else p.unlink()
+        elif directory.name!='.apcf-dir.yaml':directory.unlink()
     assert {p.name for p in runtime.iterdir()} == {'testbed','runs','downloads','tmp','cache','large','distribution','.apcf-dir.yaml'}
     assert all(list(p.iterdir()) == [p/'.apcf-dir.yaml'] for p in runtime.iterdir() if p.is_dir())
     assert native_source.read_bytes() == native_bytes, 'runtime cleanup changed native source'
@@ -2310,6 +2320,7 @@ def check_gate_kernel_cases(kernel, turn_factory, done, mutate):
 
 
 def check_gate_routes():
+    protected_agents = (ROOT / 'AGENTS.md').read_bytes()
     from contextlib import contextmanager
     import importlib
 
@@ -2334,6 +2345,7 @@ def check_gate_routes():
         return result.stdout
 
     def git(*args):
+        if not args or args[0] != 'init': assert_fixture_git_root(fixture)
         result = subprocess.run(['git', '-C', str(fixture), *args], capture_output=True, text=True, encoding='utf-8')
         assert result.returncode == 0, (args, result.stdout, result.stderr)
         return result.stdout.strip()
@@ -2405,8 +2417,7 @@ def check_gate_routes():
     try:
         shutil.copytree(ROOT / '.agent-project-control', fixture / '.agent-project-control',
                         ignore=shutil.ignore_patterns('runtime', 'iterations', 'materials', 'regressions', 'decisions', 'runbooks', '__pycache__'))
-        for name in ['AGENTS.md', 'README.md', 'README.en.md', '.gitignore', 'CURRENT.md']:
-            copy_fixture_root_document(ROOT, fixture, name)
+        seed_fixture_root(fixture)
         for name in ['iterations', 'materials', 'regressions', 'decisions', 'runbooks']:
             directory = fixture / '.agent-project-control' / name
             mark(directory)
@@ -2617,9 +2628,8 @@ def check_gate_routes():
         assert business() == before
         done(57, unchanged_entries=forbidden, auto_repair=False)
         assert (fixture / 'AGENTS.md').read_bytes() == (ROOT / 'AGENTS.md').read_bytes()
-        assert len((ROOT / 'AGENTS.md').read_bytes()) == 8693
-        expected_agents = '4bdb200e6349833ce0da52c4e34216aa9836458d80c4f2d24876e35a0eb30fbe'
-        assert hashlib.sha256((ROOT / 'AGENTS.md').read_bytes()).hexdigest() == expected_agents
+        assert (ROOT / 'AGENTS.md').read_bytes() == protected_agents
+        expected_agents = hashlib.sha256(protected_agents).hexdigest()
         canonical = {}
         for rel in MODULES:
             assert (fixture / rel).read_bytes() == (ROOT / rel).read_bytes()
@@ -2710,6 +2720,7 @@ def check_core_profiles_bootstrap():
         return p
 
     def git(*args):
+        if not args or args[0] != 'init': assert_fixture_git_root(fixture)
         p = subprocess.run(["git", "-C", str(fixture), *args], capture_output=True, text=True,
                            encoding="utf-8", env=env)
         assert p.returncode == 0, (args, p.stdout, p.stderr)
@@ -2773,12 +2784,7 @@ def check_core_profiles_bootstrap():
         src.parent.mkdir(parents=True, exist_ok=True)
         if not src.exists():
             src.write_text("body { color: black; }\n", encoding="utf-8")
-        skill_source = ROOT / ".codex/skills/github-readme-standardizer"
-        skill_target = fixture / ".codex/skills/github-readme-standardizer"
-        assert (skill_source / "SKILL.md").is_file()
-        if not skill_target.exists():
-            skill_target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copytree(skill_source, skill_target)
+        prepare_synthetic_skills(fixture)
         subprocess.run(["git", "init", "-q", str(fixture)], check=True)
         git("config", "user.name", "APCF synthetic test")
         git("config", "user.email", "synthetic@example.invalid")
@@ -3044,6 +3050,7 @@ def check_core_entrypoints():
         return r.stdout
 
     def git(*args):
+        if not args or args[0] != 'init': assert_fixture_git_root(fixture)
         r = subprocess.run(['git', '-C', str(fixture), *args], capture_output=True, text=True, encoding='utf-8')
         assert r.returncode == 0, (args, r.stdout, r.stderr)
         return r.stdout.strip()
@@ -3117,12 +3124,9 @@ def check_core_entrypoints():
         mark(fixture)
         shutil.copytree(ROOT / '.agent-project-control', fixture / '.agent-project-control',
                         ignore=shutil.ignore_patterns('runtime', 'iterations', 'materials', 'regressions', 'decisions', 'runbooks', '__pycache__'))
-        for name in ['AGENTS.md', 'README.md', 'README.en.md', '.gitignore', 'CURRENT.md']:
-            copy_fixture_root_document(ROOT, fixture, name)
+        seed_fixture_root(fixture)
         mark(fixture / '.codex'); mark(fixture / '.codex/skills')
-        safe_publish_skill = ROOT / '.codex/skills/github-safe-publish'
-        assert (safe_publish_skill / 'SKILL.md').is_file()
-        shutil.copytree(safe_publish_skill, fixture / '.codex/skills/github-safe-publish')
+        prepare_synthetic_skills(fixture)
         for name in ['iterations', 'materials', 'regressions', 'decisions', 'runbooks']:
             d = fixture / '.agent-project-control' / name
             mark(d); (d / 'INDEX.md').write_text(public + '# 1. Synthetic index\n', encoding='utf-8')
@@ -3157,7 +3161,7 @@ def check_core_entrypoints():
         call(33, 'new_parallel.py', pa, '--title', 'nested', '--request-text', 'Rejected nested PA', expected=1)
         assert not (pa / 'parallel').exists(); done(33)
         assert all((pa / n).exists() for n in ['REQUEST.md', 'CHECKLIST.md', 'TEST.md', 'TURN.md', 'evidence'])
-        assert (pa / 'TEST.md').read_text(encoding='utf-8').count(TEST_FORMAT_MARKER) == 1
+        assert (pa / 'TEST.md').read_text(encoding='utf-8').count('<!-- APCF-TEST-FORMAT v3 -->') == 1
         assert (pa / 'REQUEST.md').read_text(encoding='utf-8').endswith('Synthetic PA request\n')
         done(34)
 

@@ -23,6 +23,9 @@ def main():
     group.add_argument("--older-than-hours", type=float)
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
+    if args.apply:
+        from retention_guard import deny_blanket_cleanup
+        deny_blanket_cleanup()
     runtime = (FRAMEWORK_ROOT / "runtime").resolve()
     if not runtime.is_relative_to(FRAMEWORK_ROOT.resolve()) or runtime == FRAMEWORK_ROOT.resolve():
         raise SystemExit("FAIL: unsafe runtime root")
@@ -68,7 +71,7 @@ def main():
                 shutil.rmtree(target, onerror=remove_readonly)
             else:
                 target.unlink(missing_ok=True)
-    print(f"PASS: {len(targets)} candidate objects")
+    print(f"INVENTORY_ONLY: {len(targets)} objects; this is not permission to delete them")
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ import re
 import sys
 from urllib.parse import urlparse
 
-SCHEMA = 1
+SCHEMA = 2
 USER_REPORT_RE = re.compile(r"^## 1\.1\. USER REPORT\s*$", re.M)
 TOP_RE = re.compile(r"^#{1,4}\s+([0-9])\.(?![0-9])\s+(.+?)\s*$", re.M)
 TOKEN_RE = re.compile(
@@ -129,6 +129,7 @@ def _report_without_glossary(report: str) -> tuple[str, list[str]]:
 def candidates(report_text: str) -> list[dict]:
     report = extract_user_report(report_text)
     text, _ = _report_without_glossary(report)
+    text = re.sub(r"<!--.*?-->", lambda match: _blank(match.group()), text, flags=re.S)
     text = FENCE_RE.sub(lambda match: _blank(match.group()), text)
     text = URL_RE.sub(" ", LINK_TARGET_RE.sub(" ", text))
     text = INLINE_RE.sub(" ", text)
@@ -192,7 +193,8 @@ def initial_review(report_text: str) -> dict:
             }],
         })
     return {
-        "schema": SCHEMA,
+        "schema": SCHEMA if "APCF-FACTS " in report else 1,
+        "review_method": "author_self_review",
         "report_sha256": sha256_text(report),
         "reviewer": "",
         "reviewed_at": "",
@@ -293,18 +295,22 @@ def _validate_meaning(report: str, term: str, meaning: object, label: str) -> li
     return issues
 
 
-def validate(report_text: str, review: dict) -> list[str]:
+def validate(report_text: str, review: dict, *, turn_dir=None) -> list[str]:
     try:
         report = extract_user_report(report_text)
     except ValueError as exc:
         return [str(exc)]
     issues: list[str] = []
-    if not isinstance(review, dict) or review.get("schema") != SCHEMA:
+    if not isinstance(review, dict) or review.get("schema") not in {1, SCHEMA}:
         return ["invalid terminology review schema"]
+    if "APCF-FACTS " in report and review.get('schema') != SCHEMA:
+        issues.append('new narrative reports require visible-text terminology review schema 2')
+    if review.get('schema') == SCHEMA:
+        issues.extend(_visible_review_errors(report, review, turn_dir))
     if review.get("report_sha256") != sha256_text(report):
         issues.append("review was prepared for a different final USER REPORT SHA")
     if review.get("semantic_review_completed") is not True:
-        issues.append("terminology/content review is not completed by a human reviewer")
+        issues.append("terminology review is incomplete; this flag never establishes independent or human confirmation")
     for field in ("reviewer", "audience_context"):
         if not isinstance(review.get(field), str) or not review[field].strip():
             issues.append("missing review provenance: " + field)
@@ -497,7 +503,7 @@ def main() -> int:
             raise ValueError("--review is required for verify")
         review_path = Path(args.review)
         review = json.loads(review_path.read_text(encoding="utf-8"))
-        issues = validate(report, review)
+        issues = validate(report, review, turn_dir=Path(args.report).resolve().parent)
         if review_path.exists():
             issues.extend(private_sidecar_errors(review_path))
         for issue in issues:
@@ -511,6 +517,66 @@ def main() -> int:
         print(f"BLOCKED: {exc}")
         return 2
 
+
+
+def _visible_review_errors(report: str, review: dict, turn_dir=None) -> list[str]:
+    """Check actual displayed explanations and materialized provenance, not just names."""
+    from prose_review import quote
+    from repair_io import digest, inside
+    issues=[]
+    if review.get('review_method') != 'author_self_review':
+        issues.append('local review cannot self-issue independent-agent or human-confirmation provenance')
+    if turn_dir is None:
+        # Requiring context avoids silently checking a reference against a different repository.
+        return issues + ['schema-2 review needs current Turn directory to validate actual source evidence']
+    turn=Path(turn_dir).resolve()
+    for row in [*review.get('items',[]), *review.get('manual_terms',[])]:
+        if not isinstance(row,dict): continue
+        for meaning in row.get('meanings',[]):
+            if not isinstance(meaning,dict): continue
+            label=f"{row.get('term')} / {meaning.get('meaning_id')}"
+            try:
+                source=meaning.get('source_evidence')
+                if not isinstance(source,dict):
+                    raise ValueError('source_evidence needs path, sha256 and exact excerpt; a URL alone is not a read receipt')
+                path=inside(turn,source.get('path',''),must_exist=True)
+                if not path.is_relative_to(turn/'evidence'):
+                    raise ValueError('term source must be materialized under current evidence/')
+                raw=path.read_bytes()
+                if digest(raw)!=source.get('sha256'):
+                    raise ValueError('term source digest mismatch')
+                excerpt=source.get('excerpt')
+                if not isinstance(excerpt,str) or not excerpt.strip() or excerpt.encode() not in raw:
+                    raise ValueError('term source excerpt absent from referenced evidence')
+                kind=meaning.get('term_kind')
+                if kind not in {'abbreviation','internal_identifier','proper_name','literal','concept'}:
+                    raise ValueError('term_kind must distinguish an acronym from a local name or literal')
+                if meaning.get('name_status')=='NOT_APPLICABLE':
+                    if kind=='abbreviation':
+                        raise ValueError('unconfirmed acronym is UNVERIFIED, not NOT_APPLICABLE')
+                    if not isinstance(meaning.get('name_limit'),str) or not meaning['name_limit'].strip():
+                        raise ValueError('NOT_APPLICABLE requires a naming-origin justification')
+                if meaning.get('decision')=='EXPLAINED':
+                    visible=quote(report,meaning.get('visible_explanation'),label)
+                    if row.get('term','') not in visible:
+                        raise ValueError('visible explanation does not identify this term')
+                    for key in ('definition','context_relevance'):
+                        value=meaning.get(key,'')
+                        if not isinstance(value,str) or not value.strip() or value not in visible or value.strip() in {'略','同上','相关','已解释','当前使用'}:
+                            raise ValueError(key+' must appear in the reader-visible explanation, not only review JSON')
+                    if meaning.get('name_status')=='VERIFIED':
+                        full=meaning.get('verified_full_name','')
+                        if full not in visible or full.encode() not in raw:
+                            raise ValueError('verified full name must be present in both visible explanation and actual source')
+                    if meaning.get('name_status')=='UNVERIFIED' and meaning.get('name_limit','') not in visible:
+                        raise ValueError('uncertain naming limit must be visible to the reader')
+                else:
+                    # Exemptions remain possible, but they also need an actual audience/context source.
+                    if not meaning.get('reason'):
+                        raise ValueError('exemption needs audience/domain reasoning')
+            except (ValueError, OSError, KeyError, TypeError) as exc:
+                issues.append(label+': '+str(exc))
+    return issues
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -1,218 +1,138 @@
 # APCF-META {"schema":1,"visibility":"public"}
-"""Run finite synthetic success/repair examples in a new, isolated project.
+"""Run finite success/repair examples using the current natural-ledger lifecycle.
 
-The examples execute real framework commands and assertions. They never publish,
-modify source-template history, adopt a Design Profile, or attest real user work.
+These examples execute actual commands in an exclusively new local project.
+They do not review arbitrary user content, claim independent review, publish,
+or reuse a machine's installed Skill cache.
 """
-from __future__ import annotations
-
-import argparse
-import hashlib
-import json
-import os
-import subprocess
-import sys
 from pathlib import Path
+import argparse,json,os,subprocess,sys
 
 
-def invoke(project: Path, script: str, *args, expected=0) -> str:
-    command = [sys.executable, '-B', str(project / '.agent-project-control/scripts' / script), *map(str, args)]
-    environment = os.environ.copy()
-    environment['PYTHONUTF8'] = '1'
-    environment['PYTHONIOENCODING'] = 'utf-8'
-    result = subprocess.run(command, cwd=project, capture_output=True, text=True, encoding='utf-8', env=environment)
-    logs = project / '.agent-project-control/runtime/runs'
-    from time import time_ns
-    name = logs / ('demo-command-' + str(time_ns()) + '.json')
-    payload = json.dumps({'command': command, 'exit_code': result.returncode,
-                          'stdout': result.stdout, 'stderr': result.stderr}, ensure_ascii=False).encode('utf-8')
-    name.write_bytes(payload)
-    name.with_name(name.name + '.apcf-meta.yaml').write_text(
-        '# APCF-META {"schema":1,"visibility":"private"}\nschema: 1\nvisibility: private\nsha256: '
-        + hashlib.sha256(payload).hexdigest() + '\n', encoding='utf-8')
-    if result.returncode != expected:
-        raise RuntimeError(f'{script}: expected {expected}, observed {result.returncode}; evidence={name.name}')
-    return result.stdout
+def invoke(project,script,*args):
+    r=subprocess.run([sys.executable,'-B',str(project/'.agent-project-control/scripts'/script),*map(str,args)],cwd=project,capture_output=True,text=True,encoding='utf-8')
+    if r.returncode:raise RuntimeError(script+': '+r.stdout[-1800:]+r.stderr[-1800:])
+    return r.stdout
 
 
-def review_demo_terms(report: str) -> dict:
-    """Replay the reviewed meanings of this finite example, never arbitrary text."""
-    from datetime import datetime, timezone
-    from terminology_review import initial_review, report_sections, validate
-    definitions = {
-        'IT': '框架中承载一个稳定目标的迭代单元，本例用它组织当前合成任务',
-        'TR': '当前合成任务的一次执行记录，保存清单、验收和报告',
-        'Full Gate': '收口前的完整检查，核对路由、实际证据和内容复核',
-        'Profile': '可选设计方案，本例未采用任何方案',
-    }
-    review = initial_review(report)
-    stamp = datetime.now(timezone.utc).isoformat()
-    audience = '阅读框架首次使用示例的开发者；IT/TR 和 Full Gate 已在本例术语表解释'
-    reviewer = 'Codex: author reviewing the bounded synthetic example'
-    review.update(reviewer=reviewer, reviewed_at=stamp, audience_context=audience, semantic_review_completed=True)
-    def meaning(term, lines, explained):
-        return dict(meaning_id='example-use', line_numbers=lines,
-                    decision='EXPLAINED' if explained else 'LITERAL_FORMAT',
-                    reason=f'{term} 在当前示例中表示 '+(definitions[term] if explained else '验收状态原始标记'),
-                    audience_context=audience, domain_context='合成框架使用示例',
-                    current_use=definitions[term] if explained else term+' 当前验收状态',
-                    context_relevance='帮助读者核对本例结果和实际检查步骤',
-                    name_status='NOT_APPLICABLE', verified_full_name='',
-                    name_limit='框架局部身份和状态标签不臆造英文展开',
-                    definition=definitions[term] if explained else '验收状态标记',
-                    source_or_basis='.agent-project-control/rules/INDEX.md 及本例逐项术语说明',
-                    reviewer=reviewer, reviewed_at=stamp)
-    for item in review['items']:
-        term = item['term']
-        if term not in definitions and term not in {'PASS', 'FAIL', 'BLOCKED'}:
-            raise AssertionError('Unreviewed term outside the finite example: '+term)
-        item['meanings'] = [meaning(term, item['line_numbers'], term in definitions)]
-    _, sections = report_sections(report)
-    start, end = sections[2][2:]
-    excluded = set(range(report[:start].count('\n')+1, report[:end].count('\n')+2))
-    for term in ('Full Gate', 'Profile'):
-        lines = [n for n,line in enumerate(report.splitlines(),1) if n not in excluded and term in line]
-        if lines:
-            review['manual_terms'].append(dict(term=term, line_numbers=lines, meanings=[meaning(term, lines, True)]))
-    review['attestations'] = {name: True for name in review['attestations']}
-    assert not validate(report, review), validate(report, review)
-    return review
-
-
-def worker(project: Path, scenario: str) -> None:
-    sys.path.insert(0, str(project / '.agent-project-control/scripts'))
-    from common import dir_marker, write_md
-    from routing_activity import (record_content_review, record_plan, record_semantic_review, run_check, _private_json)
-    from route_context import capability_closure, load_contract, matching_capabilities
-    from audit_routes import classify_activity
-    from routing_activity import collect_activity, load_audit_contract
-    from report_contract import SECTION_TITLES
-    from test_ledger import TEST_FORMAT_MARKER, serialize_v2
-
-    iteration = Path(invoke(project, 'new_iteration.py', '--title', 'synthetic-demo',
-                            '--objective', '验证独立合成示例，不代表业务项目采用事实').strip().splitlines()[-1])
-    turn = Path(invoke(project, 'new_turn.py', '--title', scenario,
-                       '--request-text', 'Synthetic example: verify a local result and the managed lifecycle.').strip().splitlines()[-1])
-    target = 'demo.py' if scenario == 'success' else 'demo.md'
-    checklist = '- 【进行中】【CL-DEMO】【合成结果】：在独立合成环境中验证结果，并以真实断言和 Full Gate 当前验收确认完成'
-    test_row = dict(status='未执行', id='TEST-DEMO', refs=['CL-DEMO'], object='合成结果',
-                    context='独立合成项目和当前候选', action='运行结果断言及必要负向检查',
-                    expected='结果符合预期且错误内容被拒绝', actual='尚未执行', evidence='evidence/checks.jsonl')
-    test = serialize_v2(test_row)
-    write_md(turn / 'CHECKLIST.md', '# 1. 当前执行清单\n\n' + checklist)
-    write_md(turn / 'TEST.md', '# 1. 当前验收记录\n\n' + TEST_FORMAT_MARKER + '\n\n' + test)
-    write_md(turn / 'evidence/investigation.md', '# 1. 合成调查\n\n'
-             '当前输入是显式生成的最小演示，不包含真实用户资料\n\n'
-             '成功用例检查两个独立函数输入；修复用例检查可编辑正文和受保护代码块，实际命令结果保存在本轮证据\n', 'private')
-    record_plan(turn, [target], ['evidence/investigation.md'], ['TEST-DEMO'])
-    invoke(project, 'route_context.py', '--phase', 'scope', '--phase', 'verification',
-           '--phase', 'tools', '--phase', 'finalization', '--target', target, '--turn-dir', turn)
-    record_semantic_review(turn, {target: '目标是合成结果文件；Python 用例没有隐藏的 UI 或部署行为'},
-                           ['evidence/investigation.md'])
-    if scenario == 'success':
-        body = 'def increment(value):\n    return value + 1\n'
+def worker(project,scenario):
+    os.chdir(project)
+    target='demo.py' if scenario=='success' else 'demo.md'
+    expected_output='有限合成断言通过'
+    if scenario=='success':
+        final_body='def increment(value):\n    return value + 1\n'
+        initial_body=final_body
+        assertion_code='from demo import increment; assert increment(0)==1; assert increment(-2)==-1; print('+repr(expected_output)+')'
     else:
-        body = '# 1. 合成说明\n\n当前结果已保存。\n\n```python\nprint("受保护原文。")\n```\n'
-    code = 'from pathlib import Path; Path(' + repr(target) + ').write_text(' + repr(body) + ',encoding="utf-8")'
-    invoke(project, 'gate_enforce.py', '--entrypoint', 'action', '--turn-dir', turn,
-           '--target', target, '--run', sys.executable, '-B', '-c', code)
+        initial_body='# 1. 合成说明\n\n当前结果已保存。\n\n```python\nprint("受保护原文。")\n```\n'
+        final_body=initial_body.replace('当前结果已保存。','当前结果已保存')
+        assertion_code='from pathlib import Path; s=Path("demo.md").read_text(encoding="utf-8"); assert "当前结果已保存。" not in s; assert \'print("受保护原文。")\' in s; print('+repr(expected_output)+')'
+    (project/target).write_text('旧的合成占位内容',encoding='utf-8')
+    invoke(project,'new_iteration.py','--title','有限合成示例','--objective','检查成功与修复的实际入口，不代表业务认证')
+    turn=Path(invoke(project,'new_turn.py','--title',scenario,'--request-text','验证独立合成结果，保留受保护原文，不发布到远端').strip().splitlines()[-1])
+    ROOT=Path.cwd();sys.path.insert(0,str(ROOT/'.agent-project-control/scripts'))
+    import test_ledger as L, narrative_contract as N, execution_session as E,routing_activity as A,repair_io as IO,prose_review as P,terminology_review as T
+    from common import write_md
+    tr=turn;value=expected_output
+    request=json.loads((tr/'evidence/execution-session.json').read_text())['request_id']
+    prose='当本轮验证独立示例时，旧实现与正文错误可能使结果不符或损坏受保护原文，因此必须保存限定实现并运行真实断言，以当前结果满足预期且保留受保护原文作为完成判据'
+    quotes={'context':'当本轮验证独立示例时','problem':'旧实现与正文错误','consequence':'使结果不符或损坏受保护原文','requirement':'必须保存限定实现并运行真实断言','criterion':'当前结果满足预期且保留受保护原文'}
+    def goals(status):
+        return '# 1. 当前目标\n\n'+N.GOAL_MARKER+'\n\n'+L.serialize_goal({'status':status,'id':'CL-01','object':'合成结果与保护边界'},prose,quotes)
+    def tests(status,actual,evidence):
+        body=f'为证明当前示例满足结果和保护边界，我在本轮隔离项目中保存当前实现后运行真实断言；预期断言输出为{value}，实际{actual}，据此本次示例检查'+('通过' if status=='PASS' else '等待真实执行')+f'，证据保存在 {evidence}'
+        return '# 1. 当前验收\n\n'+N.TEST_MARKER+'\n\n'+L.serialize_v3({'status':status,'id':'TEST-01','refs':['CL-01'],'object':'合成结果断言'},body,{'purpose':'为证明当前示例满足结果和保护边界','context':'本轮隔离项目','action':'保存当前实现后运行真实断言','expected':f'预期断言输出为{value}','actual':'实际'+actual,'conclusion':'本次示例检查'+('通过' if status=='PASS' else '等待真实执行'),'evidence':evidence})
+    write_md(tr/'CHECKLIST.md',goals('进行中'));write_md(tr/'TEST.md',tests('未执行','尚未读取新值','evidence/planned-check.json'))
+    old=(ROOT/target).read_bytes()
+    IO.private_json(tr/'evidence/investigation.json',{'path':target,'before_sha256':IO.digest(old),'observed':old.decode(),'purpose':'检查当前源值，然后建立计划；没有修改业务文件'})
+    plan=A.record_plan(tr,[target],['evidence/investigation.json'],['TEST-01'])
+    E.authorize(tr,request)
+    E.apply_file(tr,request,target,initial_body.encode(),IO.digest(old))
+    # Actual subprocess readback; evidence is not a prefilled success template.
+    command=[sys.executable,'-B','-c',assertion_code]
+    if scenario=='repair':
+        failed_exit,failed_result=A.run_check(tr,['TEST-01'],[target],command,required_output=[value])
+        assert failed_exit!=0, 'negative fixture was silently accepted'
+        first_bytes=(ROOT/target).read_bytes()
+        E.apply_file(tr,request,target,final_body.encode(),IO.digest(first_bytes))
+        IO.private_json(tr/'evidence/repair-observation.json',{'first_exit':failed_exit,'before_sha256':IO.digest(first_bytes),'after_sha256':IO.digest((ROOT/target).read_bytes()),'limits':'finite editable-prose repair; protected code bytes must remain'})
+    exit_code,check=A.run_check(tr,['TEST-01'],[target],command,required_output=[value])
+    assert exit_code==0
+    last=json.loads((tr/'evidence/checks.jsonl').read_text().splitlines()[-1]);ref=last['path']
+    write_md(tr/'CHECKLIST.md',goals('已完成'));write_md(tr/'TEST.md',tests('PASS',f'断言输出为{value}',ref))
+    from report_contract import SECTION_TITLES,meaningful_file_lines,split_sections
+    parts=[f'- **IT / TR**：本项目的当前目标与当前请求\n- **Checklist**：已完成 1\n- **Test**：PASS 1',
+           '本轮从独立示例项目开始，旧内容不能证明当前实现或正文保护正确\n\n本轮先登记当前请求与计划，再保存有限实现并通过真实子进程断言，结果只限于当前合成输入',
+           '- **IT**：框架中承载稳定目标的本地编号，本例把多个请求归入有限示例目标\n- **TR**：本轮请求的独立记录编号，本例用它区分成功场景与修复场景\n- **PASS**：本地验收状态，表示当前输入在对应检查中通过，不表示真实宿主已全面验收',
+           '\n'.join(meaningful_file_lines(tr/'CHECKLIST.md')),'\n'.join(meaningful_file_lines(tr/'TEST.md')),
+           f'当前示例实际断言输出为{value}，与本轮请求一致，测试子进程正常退出\n\n本例没有自动接管真实桌面聊天或所有外部写入，因而不证明模型以后永不遗漏',
+           f'- **示例断言输出为{value}，真实宿主仍需单独核验**：当前保存和读取结果一致，连续轮次由不同请求身份隔离；外部工具与聊天通道不在此合成场景内',
+           '- **当前无需用户介入合成输入**：所有输入都是测试专用内容',
+           '- **真实宿主限制保持可见**：本轮不能作为自动加载或发送通道的认证',
+           '- **将同一版本送入真实项目观察后续轮次**：检查实际入口与最终交付，不从单轮函数通过推断普遍可靠性']
+    report='\n\n'.join(f'## {i}. {title}\n\n{parts[i]}' for i,title in enumerate(SECTION_TITLES))
+    # Author review of these known, observed fixture facts. Not an independent human label.
+    r=P.draft(report,tr);r['reviewer']['identity']='有限合成案例的编写者自查，不是独立人类签收'
+    for note in r['goals']:
+        note['observation']='目标说明旧实现或正文错误的后果，范围在业务写入前固定，修复不得改变受保护原文'
+        note['roles']={k:P.locate(prose,q) for k,q in quotes.items()}
+    raw=(tr/ref).read_bytes();trow=L.parse_tests((tr/'TEST.md').read_text())[0]
+    for note in r['tests']:
+        note['observation']=f'已经读取本轮真实子进程输出，其中含{value}，退出码与预期一致'
+        note['actual_selection']=P.locate(trow['_prose'],trow['actual'])
+        note['evidence']=[{'path':ref,'sha256':IO.digest(raw),'excerpt':value}]
+    for u in r['explanation_coverage']:u.update(importance='core',takeaway_indexes=[0],reason='这段分别说明实际结果或真实宿主限制，需要在关键要点保留')
+    r['takeaways']=[{'sha256':IO.digest(parts[6].encode()),'source_units':['E001','E002'],'observation':'摘要保留了真实断言值与宿主没有被接管的限制'}]
+    r['section_observations']={str(i):'本节只描述已执行的有限合成任务、当前请求身份及真实宿主未测边界，未声称独立人类审核' for i in range(10)}
+    IO.private_json(tr/'evidence/prose-review.json',r)
+    # Known finite glossary: no general dictionary and no new coined expansions.
+    t=T.initial_review(report);from datetime import datetime,timezone
+    stamp=datetime.now(timezone.utc).isoformat();t.update(reviewer='有限合成案例的作者',reviewed_at=stamp,audience_context='首次接触框架编号的中文读者',semantic_review_completed=True,review_method='author_self_review')
+    t['attestations']={x:True for x in T.ATTESTATIONS}
+    defs={'IT':('框架中承载稳定目标的本地编号','本例把多个请求归入有限示例目标','internal_identifier'),
+          'TR':('本轮请求的独立记录编号','本例用它区分成功场景与修复场景','internal_identifier'),
+          'PASS':('本地验收状态','表示当前输入在对应检查中通过，不表示真实宿主已全面验收','literal')}
+    source=ROOT/'.agent-project-control/rules/01-context-state.md';source2=ROOT/'.agent-project-control/rules/03-verification-regression.md'
+    body=source.read_bytes()+b'\n'+source2.read_bytes();(tr/'evidence/glossary-source.md').write_bytes(body)
+    for item in t['items']:
+        term=item['term'];assert term in defs,('unexpected term in controlled scenario',term)
+        definition,relevance,kind=defs[term]
+        line=next(x for x in parts[2].splitlines() if x.startswith('- **'+term+'**'))
+        for meaning in item['meanings']:
+            meaning.update(decision='EXPLAINED',reason='实际报告使用当前编号，需要说明用途而不是猜测英文展开',audience_context='中文首次使用者',domain_context='本地配置隔离验收',current_use=relevance,context_relevance=relevance,
+                           name_status='NOT_APPLICABLE',name_limit='这里按框架实际编号或状态值说明，不声称另有已确认的正式全称',verified_full_name='',definition=definition,
+                           source_or_basis='evidence/glossary-source.md 的实际当前规范',reviewer='有限合成案例的作者',reviewed_at=stamp,
+                           term_kind=kind,visible_explanation=P.locate(report,line),source_evidence={'path':'evidence/glossary-source.md','sha256':IO.digest(body),'excerpt':term})
+    assert not T.validate(report,t,turn_dir=tr),T.validate(report,t,turn_dir=tr)
+    IO.private_json(tr/'evidence/terms-review.json',t)
+    write_md(tr/'TURN.md',f'# 1. 本轮配置验证\n\n- **Status**：IN_PROGRESS\n\n## 1.1. USER REPORT\n\n{report}')
+    assert not A.workflow_errors(tr),A.workflow_errors(tr)
+    # Execute current receipt routing; leave its exact source output in private evidence.
+    args=[sys.executable,'-B',str(ROOT/'.agent-project-control/scripts/route_context.py'),'--turn-dir',str(tr),'--phase','scope','--phase','tools','--phase','verification','--phase','finalization','--capability','human-readable']
+    proc=subprocess.run(args,cwd=ROOT,capture_output=True,text=True)
+    (tr/'evidence/route-output.txt').write_text(proc.stdout+'\n'+proc.stderr)
+    assert proc.returncode==0,(proc.returncode,proc.stderr,proc.stdout[-2000:])
+    targets=A.managed_targets(tr)
+    # Include final report explicitly because it is a product even when structural classifier treats it as metadata.
+    turnrel=(tr/'TURN.md').relative_to(ROOT).as_posix()
+    A.record_semantic_review(tr,{rel:f'实际读取当前对象 {rel} 并核对其内容与本轮有限示例结果与保护边界相符；这里只用于本地隔离场景' for rel in targets},[ref])
+    for rel in list(dict.fromkeys([*targets,turnrel,*[(tr/name).relative_to(ROOT).as_posix() for name in ('CHECKLIST.md','TEST.md')]])):
+        cap=['human-readable']
+        A.record_content_review(tr,rel,cap,[ref],[{'line':1,'criterion':'当前有限示例请求与候选字节关联','observed':f'真实读取结果为{value}，报告中的具体结果和限制另有逐段核验','result':'PASS'}],method='deterministic-fixture-review')
+    # Host output is only prepared; caller later checks capture identity, not remote delivery.
+    E.emit(tr,request,tr/'evidence/final-output.txt')
+    invoke(ROOT,'finalize_turn.py',tr)
+    assert E.emit(tr,request,tr/'evidence/final-output.txt',observed=True)['status']=='OBSERVED_TEXT_MATCH'
+    print(json.dumps({'request_id':request,'turn':str(tr),'targets':targets,'observed':value,'checks':1,'mode':'synthetic subprocess request, not actual host chat'},ensure_ascii=False))
 
-    if scenario == 'repair':
-        record_content_review(turn, target, ['human-readable'], ['evidence/investigation.md'],
-                              [{'line': 3, 'criterion': 'Writing v0.1 §1',
-                                'observed': '可编辑正文含中文句号，代码块属于保留原文', 'result': 'FAIL'}], result='FAIL')
-        before = (project / target).read_bytes()
-        invoke(project, 'gate_check.py', '--turn-dir', turn, '--profile', 'full', expected=3)
-        assert (project / target).read_bytes() == before, 'Gate denial must not change content'
-        write_md(turn / 'evidence/diagnosis.md', '# 1. 合成诊断\n\n'
-                 '拒绝来自可编辑正文的格式问题；修复只删除该正文末尾句号，代码块字符保持原样\n', 'private')
-        repaired = body.replace('当前结果已保存。', '当前结果已保存')
-        (project / target).write_text(repaired, encoding='utf-8')
-        assert 'print("受保护原文。")' in repaired
-        command = [sys.executable, '-B', '-c',
-                   'from pathlib import Path; s=Path("demo.md").read_text(encoding="utf-8"); '
-                   'assert "当前结果已保存。" not in s; assert \'print("受保护原文。")\' in s; print("PASS: prose repaired and protected bytes retained")']
-    else:
-        command = [sys.executable, '-B', '-c',
-                   'from demo import increment; assert increment(0)==1; assert increment(-2)==-1; print("PASS: both input assertions")']
-    record_semantic_review(turn, {target: '实际候选只含本用例结果；已读取当前文件并核对没有隐藏的专用行为'},
-                           ['evidence/investigation.md'])
-    code, result = run_check(turn, ['TEST-DEMO'], [target], command, required_output=['PASS:'])
-    assert code == 0, result
-    checklist = checklist.replace('【进行中】', '【已完成】')
-    test_row.update(status='PASS', actual='真实结果断言满足，证据已保存')
-    test = serialize_v2(test_row)
-    write_md(turn / 'CHECKLIST.md', '# 1. 当前执行清单\n\n' + checklist)
-    write_md(turn / 'TEST.md', '# 1. 当前验收记录\n\n' + TEST_FORMAT_MARKER + '\n\n' + test)
-    sections = [
-        '- **IT**：' + iteration.name.split('_')[0] + '\n- **TR**：' + turn.name.split('_')[0]
-        + '\n- **结果状态**：合成范围通过\n- **Checklist 摘要**：已完成 1\n- **Test 摘要**：PASS 1 / FAIL 0 / BLOCKED 0',
-        '本轮从干净合成项目开始，实际执行初始化和规则路由\n\n当前合成结果通过直接断言，随后检查完整收口路径',
-        '- IT：框架内承载一个稳定目标的迭代单元，本例用它组织当前合成任务\n'
-        '- TR：框架内一次执行轮次的独立记录，本例用它保存请求、清单、验收和报告\n'
-        '- Full Gate：完整验收检查，核对当前候选的路由、真实证据和内容复核后才允许收口\n'
-        '- Profile：项目可选的设计方案，本例保持未采用，不让示例代替业务项目选择',
-        checklist, test,
-        '本用例使用真实命令和断言，报告只说明当前有限合成范围；修复用例另保留原失败与局部修复证据',
-        '- **合成结果具备直接证据**：结果由实际运行的断言确认，证据只支持本例覆盖的输入和内容边界',
-        '- **当前无需用户补充**：本例没有外部账号和生产系统依赖',
-        '- **业务采用仍由真实事实决定**：本例不采用任何 Profile，也不证明实际项目全部场景',
-        '- **保留有限验证结论**：后续真实项目应按当前用户需求调查和验收，本例只提供可复核的操作路径',
-    ]
-    report = '\n\n'.join('## ' + str(i) + '. ' + title + '\n\n' + sections[i]
-                          for i, title in enumerate(SECTION_TITLES))
-    write_md(turn / 'TURN.md', '# 1. ' + turn.name.split('_')[0] + ' 合成报告\n\n'
-             '- **Status**：IN_PROGRESS\n\n## 1.1. USER REPORT\n\n' + report)
-    from report_contract import validate_report
-    from gate_check import _markdown_prose
-    assert validate_report(report, turn) == [], validate_report(report, turn)
-    _private_json(turn / 'evidence/terms-review.json', review_demo_terms(report))
-    paths = classify_activity(turn, load_audit_contract(), collect_activity(turn))['target_paths']
-    for rel in paths + [(turn / n).relative_to(project).as_posix() for n in ('CHECKLIST.md', 'TEST.md', 'TURN.md')]:
-        caps, _ = matching_capabilities(load_contract(), [project / rel])
-        closure = capability_closure(load_contract(), caps)
-        needed = [c for c in closure if c in {'writing', 'style', 'design', 'readme'}]
-        if needed:
-            text = (project / rel).read_text(encoding='utf-8')
-            assert text, 'actual review object must exist'
-            assert all('。' not in prose for _, prose in _markdown_prose(text))
-            record_content_review(turn, rel, needed, ['evidence/investigation.md'],
-                                  [{'line': 1, 'criterion': '有限合成输入的 R20 对照和可编辑正文检查',
-                                    'observed': '实际执行报告结构、源 CL/TEST 一致性、可编辑正文断言；代码块保留检查单独通过', 'result': 'PASS'}],
-                                  method='deterministic-fixture-review')
-    record_plan(turn, paths, ['evidence/investigation.md'], ['TEST-DEMO'])
-    invoke(project, 'audit_routes.py', '--turn-dir', turn)
-    invoke(project, 'finalize_turn.py', turn)
-    invoke(project, 'state_integrity.py')
-    current = (project / 'CURRENT.md').read_text(encoding='utf-8').split('## 1.1. 最新完整用户报告', 1)[1].strip()
-    final = (turn / 'TURN.md').read_text(encoding='utf-8').split('## 1.1. USER REPORT', 1)[1].strip()
-    assert current == final == report
-    print('PASS: synthetic ' + scenario + '; direct assertions, Audit, Full Gate and Finalize completed')
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--project', required=True)
-    parser.add_argument('--scenario', choices=['success', 'repair'], required=True)
-    parser.add_argument('--installed-worker', action='store_true', help=argparse.SUPPRESS)
-    args = parser.parse_args()
-    project = Path(args.project).resolve()
-    if args.installed_worker:
-        worker(project, args.scenario)
-        return
-    source = Path(__file__).resolve().parents[1]
-    if project.exists() and any(project.iterdir()):
-        raise SystemExit('FAIL: demo target must be a new empty project')
-    subprocess.run([sys.executable, '-B', str(source / '.agent-project-control/scripts/bootstrap.py'), str(project)], check=True)
-    subprocess.run(['git', '-C', str(project), 'init', '--initial-branch=main'], check=True, capture_output=True)
-    subprocess.run(['git', '-C', str(project), 'config', 'user.name', 'Synthetic Template Example'], check=True)
-    subprocess.run(['git', '-C', str(project), 'config', 'user.email', 'example@example.invalid'], check=True)
-    subprocess.run(['git', '-C', str(project), 'config', 'core.autocrlf', 'false'], check=True)
-    subprocess.run(['git', '-C', str(project), 'add', '--', 'AGENTS.md', 'CURRENT.md', '.agent-project-control', '.codex'], check=True)
-    subprocess.run(['git', '-C', str(project), 'commit', '-m', 'Initialize synthetic control shell'], check=True, capture_output=True)
-    subprocess.run([sys.executable, '-B', str(Path(__file__)), '--project', str(project),
-                    '--scenario', args.scenario, '--installed-worker'], check=True)
-
-
-if __name__ == '__main__':
-    main()
+def main():
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--project',required=True);p.add_argument('--scenario',choices=['success','repair'],required=True);p.add_argument('--installed-worker',action='store_true',help=argparse.SUPPRESS);a=p.parse_args()
+    project=Path(a.project).absolute()
+    if project.is_symlink() or any(x.is_symlink() for x in project.parents):raise SystemExit('FAIL: symlink target refused')
+    project=project.resolve()
+    if a.installed_worker:worker(project,a.scenario);return
+    if project.exists() and any(project.iterdir()):raise SystemExit('FAIL: example requires a new or empty project')
+    source=Path(__file__).resolve().parents[1]
+    subprocess.run([sys.executable,'-B',str(source/'.agent-project-control/scripts/bootstrap.py'),str(project)],check=True)
+    subprocess.run([sys.executable,'-B',str(Path(__file__).resolve()),'--project',str(project),'--scenario',a.scenario,'--installed-worker'],cwd=project,check=True)
+if __name__=='__main__':main()

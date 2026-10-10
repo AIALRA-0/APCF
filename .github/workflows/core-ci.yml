@@ -1,32 +1,50 @@
-name: Core integrity
+name: APCF Core integrity
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: apcf-integrity-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
-  integrity:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+  core:
+    name: APCF Core / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Read this exact commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Use a pinned Python setup action
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11'
-      - name: Compile managed Python scripts
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          for path in sorted(Path('.agent-project-control/scripts').glob('*.py')):
-              compile(path.read_bytes(), str(path), 'exec')
-          print('PASS: managed Python syntax')
-          PY
-      - name: Canonical and metadata lint
+      - name: Validate the public checkout
         run: python -B .agent-project-control/scripts/lint_framework.py
-      - name: Design baseline contract
-        run: python -B .agent-project-control/scripts/design_contract.py --check
-      - name: Report contract smoke
-        run: python -B .agent-project-control/scripts/report_contract_selfcheck.py
+      - name: Build two independent minimal candidates and run a cold Full Pilot
+        shell: python
+        run: |
+          import hashlib, os, pathlib, subprocess, sys
+          base = pathlib.Path(os.environ['RUNNER_TEMP']) / 'apcf-cold-release-check'
+          base.mkdir()
+          for name in ('a', 'b'):
+              subprocess.run([sys.executable, '-B', 'tools/release_candidate.py', 'build', '--source', '.', '--output', str(base/name)], check=True)
+          a = base/'a/APCF-Deploy-v0.3.1.zip'
+          b = base/'b/APCF-Deploy-v0.3.1.zip'
+          assert a.read_bytes() == b.read_bytes(), 'independent ZIP bytes differ'
+          core = base/'a/core'
+          assert not any(p.name == 'SKILL.md' for p in (core/'.codex/skills').rglob('*'))
+          subprocess.run([sys.executable, '-B', str(core/'.agent-project-control/scripts/pilot_readiness.py'), '--full'], cwd=core, check=True)
+          subprocess.run([sys.executable, '-B', 'tools/release_candidate.py', 'verify', '--download-dir', str(base/'a')], check=True)

@@ -22,7 +22,7 @@ $Project = "D:\Projects\my-project"
 pwsh -NoProfile -File $Installer -ProjectRoot $Project
 ```
 
-安装器从 `AIALRA-0/APCF` 的固定 Release tag 下载正式包及 SHA-256 校验文件，验证后调用 Core `bootstrap.py`；它不使用 `Invoke-Expression` 执行远端代码；不允许安装覆盖目标项目中已存在的 `AGENTS.md`；冲突需要先适配
+安装器从 `AIALRA-0/APCF` 的固定 v0.3.1 Release tag 下载正式包及 SHA-256 校验文件，验证后调用 Core `bootstrap.py`；它不使用 `Invoke-Expression` 执行远端代码；不允许安装覆盖目标项目中已存在的 `AGENTS.md`；冲突需要先适配
 
 ## 接入 Agent 一句话
 

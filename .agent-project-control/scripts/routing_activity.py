@@ -82,8 +82,18 @@ def _run_git(*args: str, binary: bool = False) -> bytes | str:
     return proc.stdout
 
 
+def _own_git() -> bool:
+    try:
+        probe=subprocess.run(['git','-C',str(ROOT),'rev-parse','--show-toplevel'],capture_output=True,text=True)
+        return probe.returncode==0 and Path(probe.stdout.strip()).resolve()==ROOT.resolve()
+    except OSError:return False
+
+
 def git_head() -> str:
-    return str(_run_git("rev-parse", "HEAD")).strip()
+    if not _own_git():return 'NO_PROJECT_GIT'
+    value=subprocess.run(['git','-C',str(ROOT),'rev-parse','HEAD'],capture_output=True,text=True)
+    return value.stdout.strip() if value.returncode==0 else 'UNBORN_PROJECT_GIT'
+
 
 
 def _nul_paths(*args: str) -> set[str]:
@@ -98,6 +108,14 @@ def _nul_paths(*args: str) -> set[str]:
 
 
 def current_dirty_paths() -> set[str]:
+    if not _own_git():
+        paths=set()
+        for folder,dirs,files in os.walk(ROOT):
+            here=Path(folder)
+            dirs[:]=[d for d in dirs if d not in {'.git','node_modules','.venv','__pycache__'} and not (here/d).is_symlink()
+                     and not (here/d).resolve().is_relative_to((FRAMEWORK_ROOT/'runtime').resolve())]
+            paths.update((here/f).relative_to(ROOT).as_posix() for f in files)
+        return paths
     # These three commands deliberately observe Git state rather than infer it from
     # filenames. Union is recall-first and handles unstaged, staged and untracked files.
     return (
@@ -300,6 +318,8 @@ def load_events(turn_dir: Path, contract: dict, baseline: dict) -> list[dict]:
 def _committed_paths_between(old_head: str, new_head: str) -> set[str]:
     if old_head == new_head:
         return set()
+    if old_head in {'NO_PROJECT_GIT','UNBORN_PROJECT_GIT'} or new_head in {'NO_PROJECT_GIT','UNBORN_PROJECT_GIT'}:
+        raise ActivityError('version-control identity changed mid-Turn; start/rebase a real request boundary, not a fabricated commit')
     try:
         return _nul_paths("diff", "--name-only", "-z", old_head, new_head)
     except ActivityError:
@@ -382,19 +402,23 @@ def _contract_digest(turn_dir: Path) -> str:
 
 
 def _relative_target(raw: str) -> str:
-    path = (ROOT / raw).resolve()
-    if not path.is_relative_to(ROOT.resolve()) or path.is_symlink():
-        raise ActivityError('evidence target escapes repository or is a symlink')
-    return path.relative_to(ROOT.resolve()).as_posix()
+    from repair_io import inside
+    candidate=Path(raw)
+    if candidate.is_absolute():
+        try:raw=candidate.relative_to(ROOT).as_posix()
+        except ValueError as exc:raise ActivityError('target outside project') from exc
+    try:return inside(ROOT,raw).relative_to(ROOT.resolve()).as_posix()
+    except ValueError as exc:raise ActivityError(str(exc)) from exc
 
 
 def _reference(turn_dir: Path, raw: str) -> dict:
-    path = (turn_dir / raw).resolve()
-    if not path.is_relative_to((turn_dir / 'evidence').resolve()) or not path.is_file():
+    from repair_io import inside
+    try:path=inside(turn_dir,raw,must_exist=True)
+    except ValueError as exc:raise ActivityError(str(exc)) from exc
+    if not path.is_relative_to((turn_dir/'evidence').resolve()) or not path.is_file():
         raise ActivityError('review/investigation must reference an existing current-Turn evidence file')
-    if path.stat().st_size == 0:
-        raise ActivityError('empty evidence cannot establish an investigation or review')
-    return {'path': path.relative_to(turn_dir).as_posix(), 'sha256': sha256_file(path)}
+    if path.stat().st_size==0:raise ActivityError('empty evidence cannot establish an investigation or review')
+    return {'path':path.relative_to(turn_dir.resolve()).as_posix(),'sha256':sha256_file(path)}
 
 
 def _reference_errors(turn_dir: Path, rows: object) -> list[str]:
@@ -425,7 +449,30 @@ def record_plan(turn_dir_raw, targets, investigation_paths, regression_tests, po
     if errors:
         raise ActivityError('plan requires valid Checklist/TEST: ' + '; '.join(errors))
     baseline = load_baseline(turn_dir, load_audit_contract())
-    rows = parse_tests((turn_dir / 'TEST.md').read_text(encoding='utf-8'))
+    current_test_text = (turn_dir / 'TEST.md').read_text(encoding='utf-8')
+    if 'APCF-TEST-FORMAT v3' in current_test_text:
+        from execution_session import load as load_session
+        load_session(turn_dir)
+        from repair_io import digest, canonical, private_json, lock
+        plan_path=turn_dir/'evidence/workflow.json'
+        actual_targets=set(managed_targets(turn_dir))
+        if not plan_path.exists() and actual_targets:
+            raise ActivityError('first plan is after business changes; cannot retroactively authorize: '+', '.join(sorted(actual_targets)))
+        if plan_path.exists():
+            old=json.loads(plan_path.read_text())
+            if old.get('contract_digest') != _contract_digest(turn_dir):
+                # A maintained amendment artifact makes scope changes explicit instead of silently overwriting goals.
+                amendment=turn_dir/'evidence/goal-amendment.json'
+                try:
+                    change=json.loads(amendment.read_text())
+                    if (change.get('previous_digest')!=old.get('contract_digest') or
+                        change.get('current_digest')!=_contract_digest(turn_dir) or not change.get('reason')):
+                        raise ValueError('amendment source/target mismatch')
+                except (OSError,ValueError,AttributeError) as exc:
+                    raise ActivityError('goal change requires explicit current amendment: '+str(exc))
+                unplanned=actual_targets-set(old.get('targets',[]))
+                if unplanned: raise ActivityError('new targets changed before amendment: '+', '.join(sorted(unplanned)))
+    rows = parse_tests(current_test_text)
     ids = {r['id'] for r in rows}
     if not regression_tests or not set(regression_tests) <= ids:
         raise ActivityError('plan regression checks must refer to current TEST IDs')
@@ -443,13 +490,33 @@ def record_plan(turn_dir_raw, targets, investigation_paths, regression_tests, po
               'post_delivery_tests': deferred}
     if not record['investigation']:
         raise ActivityError('plan needs actual investigation evidence')
-    _private_json(turn_dir / 'evidence/workflow.json', record)
+    if 'APCF-TEST-FORMAT v3' in current_test_text:
+        from repair_io import lock, private_json
+        with lock(FRAMEWORK_ROOT/'runtime/tmp/.plan.lock'):
+            seq=len(list((turn_dir/'evidence').glob('plan-revision-*.json')))+1
+            record['sequence']=seq
+            record['sealed_at']=datetime.now().astimezone().isoformat()
+            record['target_preimages']=snapshot_rows(record['targets'])
+            record['goal_snapshot']=[{k:r[k] for k in ('id','object','body')} for r in parse_checklist((turn_dir/'CHECKLIST.md').read_text(encoding='utf-8'))]
+            private_json(turn_dir/'evidence'/f'plan-revision-{seq:06d}.json',record,create=True)
+            _private_json(turn_dir / 'evidence/workflow.json', record)
+    else:
+        _private_json(turn_dir / 'evidence/workflow.json', record)
     return record
 
 
 def workflow_errors(turn_dir: Path, targets=None) -> list[str]:
     from test_ledger import parse_tests, validate_file
     errors = validate_file(turn_dir / 'TEST.md', turn_dir / 'CHECKLIST.md')
+    current_text=(turn_dir/'TEST.md').read_text(encoding='utf-8')
+    session=turn_dir/'evidence/execution-session.json'
+    if session.exists() or 'APCF-TEST-FORMAT v3' in current_text:
+        try:
+            from execution_session import load as load_session
+            load_session(turn_dir)
+            if 'APCF-TEST-FORMAT v3' not in current_text:
+                raise ValueError('current session cannot downgrade to the legacy ledger')
+        except (OSError,ValueError) as exc: errors.append('request/session guard: '+str(exc))
     path = turn_dir / 'evidence/workflow.json'
     try:
         row = json.loads(path.read_text(encoding='utf-8'))
@@ -533,7 +600,7 @@ def semantic_review(turn_dir: Path, targets: list[str]) -> tuple[list[str], list
 
 
 def evidence_snapshot(turn_dir: Path) -> dict:
-    names = ('workflow.json', 'semantic-review.json', 'content-review.json', 'checks.jsonl')
+    names = ('workflow.json', 'semantic-review.json', 'content-review.json', 'checks.jsonl', 'prose-review.json', 'execution-session.json')
     snapshot = {name: sha256_file(turn_dir / 'evidence' / name)
                 for name in names if (turn_dir / 'evidence' / name).is_file()}
     review_path = turn_dir / 'evidence/content-review.json'
@@ -585,6 +652,8 @@ def record_content_review(turn_dir_raw, target: str, capabilities: list[str],
     """Save a finite content review; concrete positions and evidence remain inspectable."""
     turn_dir = validate_turn_dir(turn_dir_raw)
     rel = _relative_target(target)
+    if method not in {'agent-review','author_self_review','deterministic-check','deterministic-fixture-review'}:
+        raise ActivityError('local API cannot authenticate a caller-declared human or independent reviewer')
     if result not in {'PASS', 'FAIL', 'NOT_APPLICABLE'} or not observations:
         raise ActivityError('content review requires a result and concrete observations')
     terminology_review_ref = None
@@ -593,6 +662,10 @@ def record_content_review(turn_dir_raw, target: str, capabilities: list[str],
     except (OSError, UnicodeError, ValueError) as exc:
         raise ActivityError('final USER REPORT cannot be reviewed: ' + str(exc)) from exc
     if report is not None:
+        if 'APCF-FACTS ' in report and result=='PASS':
+            from prose_review import validate_review_file
+            defects=validate_review_file(report,turn_dir)
+            if defects: raise ActivityError('; '.join(defects))
         review_rel = terms_review_path or 'evidence/terms-review.json'
         review_path = _terms_review_path(turn_dir, review_rel)
         if not review_path.is_file():
@@ -602,7 +675,7 @@ def record_content_review(turn_dir_raw, target: str, capabilities: list[str],
             try:
                 review = json.loads(review_path.read_text(encoding='utf-8'))
                 from terminology_review import private_sidecar_errors, validate as validate_terminology_review, write_private_sidecar
-                issues = validate_terminology_review(report, review)
+                issues = validate_terminology_review(report, review, turn_dir=turn_dir)
                 if issues and result == 'PASS':
                     raise ActivityError('final USER REPORT terminology review is incomplete: ' + '; '.join(issues))
                 write_private_sidecar(review_path)
@@ -701,6 +774,8 @@ def content_review_errors(turn_dir: Path, target: str, capabilities: list[str]) 
             errors.append('content review candidate SHA is stale')
         if row.get('result') != 'PASS':
             errors.append('content review has not passed')
+        if row.get('method') not in {'agent-review','author_self_review','deterministic-check','deterministic-fixture-review'}:
+            errors.append('reviewer method is not authenticated by this local interface')
         if not set(capabilities) <= set(row.get('capabilities', [])):
             errors.append('content review omits an applicable capability')
         from route_context import build_route, load_contract
@@ -726,6 +801,9 @@ def content_review_errors(turn_dir: Path, target: str, capabilities: list[str]) 
             errors.append('final USER REPORT terminology scope is invalid: ' + str(exc))
             report = None
         if report is not None:
+            if 'APCF-FACTS ' in report:
+                from prose_review import validate_review_file
+                errors.extend(validate_review_file(report,turn_dir))
             review_rel = row.get('terms_review_path')
             if not isinstance(review_rel, str) or not review_rel.strip():
                 review_rel = 'evidence/terms-review.json'
@@ -737,7 +815,7 @@ def content_review_errors(turn_dir: Path, target: str, capabilities: list[str]) 
                 review_path = _terms_review_path(turn_dir, review_rel)
                 review = json.loads(review_path.read_text(encoding='utf-8'))
                 from terminology_review import private_sidecar_errors, validate as validate_terminology_review
-                errors.extend('terminology review: ' + issue for issue in validate_terminology_review(report, review))
+                errors.extend('terminology review: ' + issue for issue in validate_terminology_review(report, review, turn_dir=turn_dir))
                 errors.extend('terminology review: ' + issue for issue in private_sidecar_errors(review_path))
             except (OSError, UnicodeError, json.JSONDecodeError, ActivityError, ValueError) as exc:
                 errors.append('final USER REPORT terminology evidence missing or invalid: ' + str(exc))
@@ -805,6 +883,7 @@ def acceptance_errors(turn_dir: Path, stage='final') -> list[str]:
                     and row.get('exit_code') == row.get('expected_exit')
                     and row.get('command') and all(file_state(p['path']) == p for p in row.get('targets', []))
                     and all(s in row.get('stdout', '') + row.get('stderr', '') for s in row.get('required_output', []))):
+                row['_artifact_path']=ref['path']
                 records.append(row)
     except (OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError, ActivityError) as exc:
         errors.append('actual TEST check evidence unavailable: ' + str(exc))
@@ -818,7 +897,7 @@ def acceptance_errors(turn_dir: Path, stage='final') -> list[str]:
                 errors.append(row['id'] + ': not-applicable requires a concrete scope reason')
         elif row['status'] != 'PASS':
             errors.append(row['id'] + ': required current acceptance has not passed')
-        elif not any(row['id'] in r.get('test_ids', []) for r in records):
+        elif not any(row['id'] in r.get('test_ids', []) and (row.get('format_version')!=3 or r.get('_artifact_path','<missing>') in row['evidence']) for r in records):
             errors.append(row['id'] + ': formatted PASS has no actual current check evidence')
     return errors
 

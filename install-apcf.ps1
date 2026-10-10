@@ -3,11 +3,11 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$ProjectRoot,
-    [string]$Tag = 'v0.3.0-closeout-v2'
+    [string]$Tag = 'v0.3.1'
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$ExpectedTag = 'v0.3.0-closeout-v2'
+$ExpectedTag = 'v0.3.1'
 if ($Tag -cne $ExpectedTag) { throw "This installer pins $ExpectedTag; use the matching release instead of an unverified tag." }
 $target = (Resolve-Path -LiteralPath $ProjectRoot).ProviderPath
 if (-not (Test-Path -LiteralPath $target -PathType Container)) { throw 'Target must be a real existing project directory.' }
@@ -20,7 +20,7 @@ if (Test-Path -LiteralPath $git) {
     if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect existing Git index. Stop.' }
     Write-Host 'Git repository detected; existing index and source files will not be rewritten.'
 }
-$asset = 'APCF-Deploy-v0.3.0-closeout-v2.zip'
+$asset = 'APCF-Deploy-v0.3.1.zip'
 $base = "https://github.com/AIALRA-0/APCF/releases/download/$Tag"
 $temp = Join-Path ([System.IO.Path]::GetTempPath()) ('apcf-bootstrap-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $temp -ErrorAction Stop | Out-Null
@@ -45,7 +45,7 @@ reserved={'CON','PRN','AUX','NUL',*(f'COM{i}' for i in range(1,10)),*(f'LPT{i}' 
 with zipfile.ZipFile(p) as z:
     if z.testzip(): raise SystemExit('Release ZIP CRC error')
     for m in z.infolist():
-        n=m.filename
+        n=m.orig_filename
         if not n or n.startswith('/') or '\\' in n or any(x in ('','.','..') or x.endswith(('.', ' ')) for x in n.strip('/').split('/')) or re.match(r'^[A-Za-z]:',n): raise SystemExit('Unsafe path: '+repr(n))
         if any(ord(c)<32 or c in '<>:"|?*' for c in n) or any(x.split('.')[0].upper() in reserved for x in n.strip('/').split('/')): raise SystemExit('Illegal Windows path')
         if (m.external_attr>>16)&0o170000 not in (0,stat.S_IFREG,stat.S_IFDIR): raise SystemExit('Unsafe special file')

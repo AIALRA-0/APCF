@@ -1,52 +1,46 @@
 <!-- APCF-META {"schema":1,"visibility":"public"} -->
-# APCF 首次接入与恢复执行合同
+# 1. APCF 项目接入与多轮恢复入口
 
-**适用范围**：Agent 为一个既有或空白项目首次采用 APCF Core v0.3.0 Closeout v2，或接管未完成的接入。**执行原则**：真实项目优先、共享规则只读加载、先检查后写入、持续执行并以证据判定完成。该合同是使用路径，不是 Canonical Rule、Writing、Style 或 Design 的第二份正文。
+本文件只协调入口和执行次序；唯一规则仍在 rules/，Writing、Style、Design 继续通过原接口加载；这里不复制其正文
 
-## 1. 启动与目标解析
+## 1.1. 每个有效请求先认清现场
 
-1. 从当前 Agent 实际工作目录出发，读取 `pwd`、`git rev-parse --show-toplevel` 或项目原生工作区标识，确定**真实目标根目录**。如果存在多项目或 monorepo，明确工作区根和子项目边界；不要误把 APCF 下载或发布工具所在目录当作目标项目。无法唯一识别时，提出**一个精确问题**，不猜测。
-2. 先只读检查目标：现有 `AGENTS.md`、其他 Agent 入口、`.agent-project-control`、`.codex`、配置、CI、Git HEAD、index、dirty/untracked、构建产物、文档和用户数据。记录本轮起点及保护对象 SHA；检查是否已有 APCF，避免重复安装。
-3. 读取当前下载 Core 中的 `AGENTS.md`、`.agent-project-control/framework.yaml`、`rules/INDEX.md`、完整 R01–R31 的路由文件、Writing/Style Interface、Design Index、Skills Lock、Gate 入口。严格由当前磁盘决定生效版本，**不得用旧 GitHub 源码覆盖本地已验证 Core**。
+首次接入、第二轮和第三轮新要求、恢复上下文、切换目录或进程时，先确认当前 Agent 实际工作根目录，找出从工作区到目标目录生效的 AGENTS.md；部署副本、VPS、本地工作树不能相互替代；无法取得宿主加载回执时写“未证实自动加载”，主动读取目标入口，不声称文件存在就代表宿主已执行
 
-## 2. 先划清归属再接入
+判断当前消息是新任务、同一任务的更正还是纯问答；按 R17 建立或恢复真实 IT/TR；工具回调与内部返修不冒充新用户请求；先读取当前请求、目标版本、最近真实状态和适用规范，再继续已确认的断点，不盲目重复外部副作用
 
-| 层面 | 唯一责任来源 | 适配方式 |
-|---|---|---|
-| 业务功能、已有测试、构建/部署和产品源数据 | 原项目已有源码与权威文件 | 原位保留；不因模板而迁移或重写 |
-| APCF R01–R31、规则路由、IT/TR/CL/TEST、门禁与收口 | Core 对应 Canonical/脚本 | 新增控制壳；不得并列维护第二份规则 |
-| 真实项目目标、架构、采用与例外 | 项目事实与 `PROJECT.md`、`ARCHITECTURE.md`、`DESIGN.md` | 基于真实调查逐项填写；未知就写未知 |
-| Writing / Style / Design / Skills | 当前 Core 接口与锁，已认可的项目原生设计权威 | 只解析当前适用规则与触发的 Skill；默认不替换网站视觉实现 |
-| 可选 Atlas 或 Design Profile | 项目明确采用的组件/用户授权 | 默认 `UNRESOLVED`；不自动安装或套用 |
+## 1.2. 安装和适配
 
-禁止覆盖已有 `AGENTS.md`、重置 Git、覆盖未提交修改、强改 CI、移动源码、清空历史或采集无关秘密。不能无损解决入口冲突、需要外部凭证或不可逆动作时，应先保护现状并只询问必要决策。
+确认目标项目真实根目录；先记录已有源码、Git/无 Git 状态及 Agent 指令；原项目继续拥有业务代码、构建和设计系统，APCF 管理规则路由、执行记录、验收及交付；只引用必要项目事实，不移动原代码；已有入口冲突时必须比较后给出可逆适配，不直接覆盖
 
-## 3. 安全安装与项目初始化
+从验证过的 Core 通过 bootstrap.py 安装；初始化 PROJECT、ARCHITECTURE 和项目 DESIGN 的实际事实，初始化 Writing/Style 接口及技能锁；可选技能缺席不是已安装，显式需要时才按锁取得并验证；默认不改原有前端 UI，不自动采用任何 Workbench/Atlas Profile
 
-1. 核实**下载的正式 Release ZIP、SHA-256 与实际安装命令**，严格执行包中 `bootstrap.py --help` 和当前安装合同；旧版样例命令不能代替现场参数。只在目标确实没有受管 APCF 冲突时安装。
-2. 安装后复查保护对象内容 SHA、原 Git 提交和暂存条目。`AGENTS.md` 必须成为最小且可读的路由入口；原项目已有多 Agent 规则时，应兼容整合或暂停冲突范围，不能强行留下互相矛盾的指令。
-3. 真实创建或更新项目 `PROJECT.md`、`ARCHITECTURE.md`、`DESIGN.md` 的**项目事实层**：目标、用户、边界、技术栈、源目录、构建/测试/部署入口、风险、事实来源和未知事项。无需相关领域时保持极简，不造事实填模板。
-4. 初始化当前 Writing、Style、Design、材料/资源索引和 Skills Lock 路由；读取与本次工作有关的真正权威，验证可解析性和触发路径。Skill 按需加载，不自动安装全部缓存或永久复制正文。 完整 Full Pilot 会在隔离夹具中验证 README 与发布能力；执行这项完整回归前，需要准备 Skills Lock 指定的 README 完整仓库和同 SHA 的 pinned-local 发布 Skill 快照，实际运行 `sync_skills.py --check`。这些测试依赖只进入私有缓存，不进入发行 ZIP，也不授予真实发布权限；缺失或版本不符时保留阻塞证据，不假装依赖已安装。若既有同类系统成熟，保留原权威并建立映射。
-5. 首次 IT/TR 之前，实际运行 `git rev-parse --show-toplevel` 与 `git rev-parse --verify HEAD`：当前基线的执行记录和 Gate 依赖有效 Git 仓库及已有提交。已有 Git 必须保留原分支、HEAD、index 和历史；无 Git 或尚无首提交时，先检查当前请求是否已明确授权初始化与首提交，已授权才执行必要操作，缺少该授权才询问一次；否则记录 `PILOT_BLOCKED`，不创建半初始化 TR，也不得声称无 Git 生命周期已可用。安装成功本身不代表这项前置条件已满足。
-6. 按真实当前 IT 状态和 Canonical 规则启动本项目自己的首次 IT、TR；逐字写 `REQUEST.md`，建立独立 CHECKLIST、TEST、证据目录和必要路由 Receipt。导入模板时**绝不复制模板开发仓 IT/TR/REG/MAT/RB 实例**。
+## 1.3. 实施前先建立目标
 
-## 4. 首次真实 Pilot
+运行 new_iteration.py/new_turn.py 前读取当前 --help；新 Turn 默认 TEST v3、目标映射 v1；REQUEST 原文、目标与证据均属于当前项目，不继承模板的历史
 
-以“现有项目结构、执行入口、规范加载和首次受控生命周期”为首轮 Objective。优先选用不改业务逻辑、能直接观察的实际项目检查，而非制造虚假的业务成果。必须完成：
+先做只读调查，编写说明条件、问题、后果、承诺和判据的 Checklist，并为当前目标建立未执行的 TEST；使用 ledger_writer.py 构建单一自然正文与不可独立改值的事实定位；记录实际 investigation，然后通过 routing_activity.py plan 封存计划；先改业务再补计划会被新版路径拒绝；目标变更写清来源、旧摘要、新摘要和理由，不能重写旧快照
 
-- 检查项目文件和 Git 原状，核对保护差异；没有业务改动时明确写为“未改变”。
-- 路由当前规范，确认 Canonical Rules、Writing、Style、Design、Skills 的单一权威和适用状态；只触发本任务需要的能力。
-- 执行可用的项目原生构建/测试及 APCF lint、rule/design/standards 检查、selfcheck、Pilot Full、Gate 和 Finalize；按当前规则处理顺序、环境和依赖。
-- 至少一次正向与与风险相称的负向/重复操作验证。每条 TEST 必须给出真实版本、环境、操作、预期、实际、证据；缺证据不得 PASS。
-- 检查旧文件不被覆盖、重复执行不创建冲突条目、失败恢复可追溯、当前 TURN/CURRENT 同源，显示 `PASS/FAIL/BLOCKED/未执行` 的真实范围。
-- **不得把 localhost 页面、综合演示或单条脚本退出 0 当作生产站点验收**；生产部署、真实云、外部账号、长时压力未执行就明确标注。
+## 1.4. 每轮调用同一个协作入口
 
-## 5. 收口和重读机制
+new_turn.py 已自动建立当前请求身份；读取本轮 evidence/execution-session.json 中的 request_id，调用 execution_session.py resume --turn <TR> --request-id <当前身份> 核对；不要重复 begin；后续 authorize、write、prepare-output、compare-output 必须使用同一身份；规则或范围变化后实际重读并 refresh，再重新授权
 
-按当前 R20 / 报告合同生成完整首轮用户报告，并原样写入当前 TURN，经正式 Finalize 确定性更新 CURRENT；如未满足 Gate 则保留未完成状态与证据，不伪造成功。报告至少交代：目标根、所用发行 SHA、保护对象、项目调查结果、安装差异、规范/Skill 初始化、IT/TR、验收退出码、阻塞、回滚与下一步。
+该入口提供受控文件写入和文本核对，不会自动拦截普通 shell 或宿主全部聊天；Agent 宿主能否在每条新请求、工具写入和最终回复时调用它，必须由部署验收单独证明；没有宿主集成时，能力等级只能称“协作入口”，不得称不可绕过强约束；不要新装一个 Dify/LangGraph 后便宣称已经接管桌面会话
 
-**如果 Agent 更换、窗口重启或“忘记框架”**：停止猜测，重新读取目标 `AGENTS.md`、`CURRENT.md`、本 `APCF_ONBOARDING.md`、当前 CL/TEST 和本阶段真正命中的 Canonical Modules；恢复项目当前事实与已完成证据，只继续未闭环的下一项。不复制上一个 TR 的完成状态，也不重复不确定的非幂等写入。
+## 1.5. 检查实际内容和实际交付
 
-## 6. 完成状态
+执行当前候选的必要测试，保留失败与证据；TEST 正文说明为什么验证、条件、动作、判据、观察、有限结论和实际证据；不可写成五个短字段的标签集合
 
-只有经当前 Core 完整验收且原项目保护检查通过时，报告 `PILOT_PASSED`（这是面向用户的分类，并非擅自引入新 schema）。部分通过应报告 `INSTALLED` / `PILOT_IN_PROGRESS` / `PILOT_BLOCKED` / `PILOT_FAILED` 的实际状态；不可用名义成功替代真实证据。**默认不 Commit、Push、Release、改网站 UI、删除历史或上传数据**；只有用户另行明确指定的权限与发布范围才能执行这些动作。
+终稿建立 prose-review.json 和 terms-review.json：审核实际引用、目标因果、完整讲解的核心结论及限制、关键要点覆盖和用户能看到的术语解释；不设最低词数或固定四条；审查人是作者时如实标自评，不伪装成人类确认
+
+核对 TEST → TURN → CURRENT；正式收口仅走原 Gate/Finalize；prepare-output 生成待发送的同一正文；实际发送后有宿主捕获文本时再 compare-output；若受更高层指令或用户明确简报要求限制，应保存并复验转换后的正文及转换依据，不能一边发送摘要一边声称逐字一致；用户取消或无法完成时诚实报告阻塞，不无限循环求 PASS
+
+## 1.6. 首次与连续轮次验收
+
+首次走通不算多轮保证；首次接入后继续检验：不重复长提示的第二轮、修改要求的第三轮、父目录启动、切换工作树、压缩/重开、规则变更、旧授权、写入冲突、取消及实际最终答复；工具测试与真实宿主观察分开记录；跨轮证据不足时不得发布“总能遵守”的承诺
+
+无 Git 项目使用实际文件快照和明确的 NO_PROJECT_GIT 状态，本包已提供相应生命周期；它不是 Git 提交或独立备份；宿主仍有未支持步骤时明确阻塞，不能为了测试通过擅自 git init、提交或降低 Gate
+
+## 1.7. 本阶段监督协作入口
+
+本轮安装包含 `interfaces/EXECUTION_SUPERVISION.md` 时，在任务启动、规范应用和交付边界按该接口调用 `scripts/supervisor.py`；它复用本文件前述机制，不允许据此略过请求、计划、正文或正式 Gate；入口覆盖与未覆盖范围必须如实写入最终报告

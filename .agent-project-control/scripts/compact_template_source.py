@@ -17,6 +17,8 @@ def main():
     ap.add_argument("--apply",action="store_true")
     ap.add_argument("--archive-ref",default=None)
     a=ap.parse_args()
+    if a.apply:
+        raise SystemExit("BLOCKED: legacy compaction lacks a complete reference/ownership proof; retain history and use a separately authorized recovery-tested archive plan")
     if "template_source: true" not in (FRAMEWORK_ROOT/"framework.yaml").read_text(encoding="utf-8"):
         raise SystemExit("FAIL: compaction is allowed only in the template source repository")
     current=(ROOT/"CURRENT.md").read_text(encoding="utf-8")

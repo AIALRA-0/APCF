@@ -3,6 +3,7 @@ import argparse
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
+import narrative_contract as narrative
 
 TEST_RE = re.compile(
     r"^- 【(?P<status>未执行|进行中|PASS|FAIL|BLOCKED|不适用)】"
@@ -124,6 +125,8 @@ def serialize_v2(row):
 
 
 def _marker_errors(text):
+    if "APCF-TEST-FORMAT v3" in text or "APCF-FACTS" in text:
+        return narrative.blocks(text)[1]
     markers = [line.strip() for line in text.splitlines() if "APCF-TEST-FORMAT" in line]
     errors = []
     if any(line != TEST_FORMAT_MARKER for line in markers):
@@ -156,6 +159,9 @@ def _split_refs(raw):
 
 
 def parse_tests(text):
+    if "APCF-TEST-FORMAT v3" in text or "APCF-FACTS" in text:
+        rows, errors = narrative.blocks(text)
+        return rows if not errors else []
     tests=[]
     for line in _body_lines(text):
         row=parse_test_line(line)
@@ -166,6 +172,9 @@ def parse_tests(text):
 
 
 def parse_checklist(text):
+    if "APCF-GOAL-FORMAT" in text or "APCF-GOAL {" in text:
+        rows, errors = narrative.blocks(text, goal=True)
+        return rows if not errors else []
     items=[]
     for line in _body_lines(text):
         m=CHECKLIST_RE.match(line)
@@ -177,7 +186,8 @@ def parse_checklist(text):
 
 def validate_text(text, checklist_text=None):
     errors=_marker_errors(text)
-    raw_lines=_body_lines(text)
+    current_v3 = "APCF-TEST-FORMAT v3" in text or "APCF-FACTS" in text
+    raw_lines=[] if current_v3 else _body_lines(text)
     tests=parse_tests(text)
 
     for line in raw_lines:
@@ -204,7 +214,12 @@ def validate_text(text, checklist_text=None):
                 errors.append(f"{tid} empty required field: {field}")
 
     if checklist_text is not None:
-        for line in _body_lines(checklist_text):
+        goal_v1 = "APCF-GOAL-FORMAT" in checklist_text or "APCF-GOAL {" in checklist_text
+        if goal_v1:
+            errors.extend(narrative.blocks(checklist_text, goal=True)[1])
+        if current_v3 and not goal_v1:
+            errors.append("new TEST v3 requires a goal-mapped Checklist, not an unverified retrospective summary")
+        for line in ([] if goal_v1 else _body_lines(checklist_text)):
             if not CHECKLIST_RE.match(line):
                 errors.append(f"unrecognized Checklist record; every current requirement must have a CL-ID and object: {line[:180]}")
         checklist=parse_checklist(checklist_text)
@@ -275,3 +290,12 @@ def main():
 
 if __name__=="__main__":
     main()
+
+
+# New writers use these APIs. Legacy serialize_v2 remains only for explicit compatibility.
+TEST_NARRATIVE_MARKER = narrative.TEST_MARKER
+GOAL_NARRATIVE_MARKER = narrative.GOAL_MARKER
+serialize_v3 = narrative.serialize
+
+def serialize_goal(row, prose, quotes=None, *, mapping=None):
+    return narrative.serialize(row, prose, quotes, mapping=mapping, goal=True)

@@ -62,55 +62,6 @@ def validate_distribution(path):
     return errors
 
 
-def check_project_identity(cfg):
-    # Framework identity is distinct from an adopting product's README.
-    if 'framework_name: "Agent Project Control Framework"' not in cfg:
-        raise SystemExit('FAIL: framework.yaml missing official framework name')
-    if 'template_source: true' in cfg:
-        for label in ("README.md", "README.en.md"):
-            text = (ROOT / label).read_text(encoding="utf-8")
-            if "Agent Project Control Framework" not in text:
-                raise SystemExit(f"FAIL: {label} missing official project name")
-            if "v0.3.0" not in text:
-                raise SystemExit(f"FAIL: {label} missing v0.3.0 status")
-
-
-def check_distribution(output, cfg):
-    if 'template_source: true' in cfg:
-        run("prepare_distribution.py", "--output", output)
-    else:
-        # A consumer receives the control shell, not the template's product
-        # documents. Exercise the same distributor with owned synthetic input;
-        # never export or rewrite the adopting project's README and examples.
-        from bootstrap import populate_target
-        from common import dir_marker, write_md
-        from prepare_distribution import ROOT_DOCUMENTS
-        fixture = output.parent / "synthetic-core-source"
-        fixture.mkdir()
-        populate_target(fixture)
-        for name in ROOT_DOCUMENTS:
-            if name == '.gitignore':
-                (fixture / name).write_text('# APCF-META {"schema":1,"visibility":"public"}\n'
-                                           '.agent-project-control/runtime/**\n.codex/skills/**\n', encoding='utf-8')
-            else:
-                write_md(fixture / name, '# 1. Synthetic distribution document\n\n'
-                         'Agent Project Control Framework v0.3.0: isolated distribution regression input.\n')
-        dir_marker(fixture / "examples", "public")
-        (fixture / "examples/run_demo.py").write_text('# APCF-META {"schema":1,"visibility":"public"}\n'
-                                                    'print("Synthetic distribution fixture")\n', encoding='utf-8')
-        result = subprocess.run([sys.executable, "-B", str(fixture / ".agent-project-control/scripts/prepare_distribution.py"),
-                                 "--output", str(output)], cwd=fixture, capture_output=True, text=True, encoding="utf-8")
-        if result.returncode:
-            print(result.stdout, end="")
-            print(result.stderr, end="", file=sys.stderr)
-            raise SystemExit(f"FAIL: isolated prepare_distribution.py exited {result.returncode}")
-    errors = validate_distribution(output)
-    if errors:
-        for error in errors:
-            print("FAIL:", error)
-        raise SystemExit(2)
-
-
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--full",action="store_true")
@@ -121,13 +72,12 @@ def main():
     if 'schema_version: "0.3.0"' not in cfg:
         raise SystemExit("FAIL: framework.yaml is not v0.3.0")
 
-    check_project_identity(cfg)
-
     for p in SCRIPTS.glob("*.py"):
         compile(p.read_bytes(),str(p),"exec")
 
     run("lint_framework.py")
     run("report_contract_selfcheck.py")
+    run("core_repair_selfcheck.py")
     run("design_contract.py","--check")
     tr=current_turn()
     if tr:
@@ -137,10 +87,11 @@ def main():
             raise SystemExit(2)
 
     if a.full:
+        print(run("supervisor_selfcheck.py"),end="")
         print(run("selfcheck.py"),end="")
 
     if a.require_clean:
-        run("cleanup_runtime.py","--all","--apply")
+        # Readiness must never delete evidence. Report actual residue without mutation.
         run("state_integrity.py","--require-tracked")
         artifacts=runtime_artifacts()
         if artifacts:
@@ -152,9 +103,15 @@ def main():
             print(preview,end="")
             raise SystemExit("FAIL: template source still has removable history; review and compact first")
 
+    # A real project is not a template source. Do not demand replacing its native
+    # README or repackaging its facts. Distribution packaging has its own explicit check.
     with tempfile.TemporaryDirectory(dir=FRAMEWORK_ROOT/"runtime/testbed") as td:
-        out=Path(td)/"distribution"
-        check_distribution(out, cfg)
+        out=Path(td)/"bootstrap-probe"
+        run("bootstrap.py",out)
+        errors=validate_distribution(out)
+        if errors:
+            for e in errors:print("FAIL:",e)
+            raise SystemExit(2)
 
     print("PASS: APCF v0.3.0 deterministic pre-pilot readiness")
 

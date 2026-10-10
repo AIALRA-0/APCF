@@ -5,6 +5,7 @@ import argparse
 import fnmatch
 import json
 import os
+import re
 import sys
 import tomllib
 from argparse import Namespace
@@ -66,6 +67,15 @@ def classify_activity(turn_dir: Path, contract: dict, activity: dict) -> dict:
     }
     evidence_prefix = (turn_dir / "evidence").resolve().relative_to(ROOT.resolve()).as_posix() + "/"
 
+    parallel_prefix = (turn_dir / "parallel").resolve().relative_to(ROOT.resolve()).as_posix() + "/"
+
+    def current_parallel_evidence(rel: str) -> bool:
+        if not rel.startswith(parallel_prefix):
+            return False
+        parts = PurePosixPath(rel[len(parallel_prefix):]).parts
+        return (len(parts) >= 3 and re.fullmatch(r"PA-\d{4,}_[^/]+", parts[0]) is not None
+                and parts[1] == "evidence")
+
     facts: list[dict] = []
     target_paths: list[str] = []
     required_phases: set[str] = {"bootstrap"}
@@ -74,7 +84,7 @@ def classify_activity(turn_dir: Path, contract: dict, activity: dict) -> dict:
 
     changed_paths = list(activity.get("changed_paths", []))
     for rel in changed_paths:
-        if rel in current_turn_internal or rel.startswith(evidence_prefix):
+        if rel in current_turn_internal or rel.startswith(evidence_prefix) or current_parallel_evidence(rel):
             facts.append({"kind": "path-change", "subject": rel, "disposition": "neutral", "reason": "current-turn-control"})
             continue
         if _matches_any(rel, neutral_globs):

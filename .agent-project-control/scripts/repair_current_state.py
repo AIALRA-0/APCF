@@ -31,31 +31,11 @@ def main():
     if not turn.is_relative_to(iterations) or len(turn.relative_to(iterations).parts)!=3 or turn.parent.name!="turns":
         raise SystemExit("FAIL: Source TURN must be a canonical turn inside iterations")
     it=turn.parents[1]; turns=it/"turns"
-    dir_marker(it); dir_marker(turns); dir_marker(turn)
-    for name in ["evidence","parallel"]:
-        d=turn/name
-        if not (d/".apcf-dir.yaml").exists(): dir_marker(d,"private")
-    status="COMPLETED"; objective="Recovered current framework state"
-    m=IT_RE.search(report)
-    if m:
-        objective=(m.group(2) or objective).strip()
-        status=(m.group(3) or status).strip()
-    if not (it/"ITERATION.md").exists():
-        write_md(it/"ITERATION.md",f"# 1. {it.name.split('_',1)[0]} 迭代目标\n\n- **Status**：{status}\n- **Objective**：{objective}\n")
-    if not (turn/"CHECKLIST.md").exists():
-        write_md(turn/"CHECKLIST.md","# 1. 当前执行清单\n\n"+section(report,3,"执行清单"))
-    if not (turn/"TEST.md").exists():
-        write_md(turn/"TEST.md","# 1. 当前验收记录\n\n"+section(report,4,"验收记录"))
-    if not (turn/"TURN.md").exists():
-        write_md(turn/"TURN.md",f"# 1. {turn.name.split('_',1)[0]} 执行轮次报告\n\n- **Status**：FINALIZED\n\n## 1.1. USER REPORT\n\n{report}")
-    # Promote only the reviewed durable subset, preserving frozen content and private input
-    for p in [it/"ITERATION.md",turn/"TURN.md",turn/"CHECKLIST.md",turn/"TEST.md"]:
-        text=p.read_text(encoding="utf-8")
-        lines=text.splitlines(keepends=True)
-        if lines and lines[0].startswith("<!-- APCF-META"):
-            lines[0]=lines[0].replace('"visibility":"private"','"visibility":"public"')
-            p.write_text("".join(lines),encoding="utf-8")
-        else: raise SystemExit("FAIL: durable state metadata missing: "+str(p.relative_to(ROOT)))
+    required=[it/'ITERATION.md', turn/'CHECKLIST.md', turn/'TEST.md', turn/'TURN.md']
+    missing=[p.relative_to(ROOT).as_posix() for p in required if not p.is_file() or p.is_symlink()]
+    if missing:
+        raise SystemExit('BLOCKED: report text cannot reconstruct authoritative lifecycle state; restore verified originals: '+', '.join(missing))
+    # No default COMPLETED, no invented FINALIZED, and no automatic private-to-public promotion.
     # REQUEST.md is never reconstructed from a report.
     from refresh_indexes import main as refresh
     refresh()

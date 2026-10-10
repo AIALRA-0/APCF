@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "version": "design-atlas-v0.5-r3",
+  "source_sha256": "ef8e7cab2346dfb9d9f6107560223466bdebe3f05552f02cf57cd759968ef39d",
+  "entry": "index.html",
+  "auto_adopt": false,
+  "purpose": "exact separately delivered UI specimen, not Core or a new UI implementation"
+}

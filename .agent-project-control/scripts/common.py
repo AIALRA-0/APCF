@@ -16,14 +16,23 @@ def dir_marker(p,vis='public'):
 def write_md(p,body,vis='public'):
     p=Path(p); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(meta_line(vis)+'\n'+body.rstrip()+'\n',encoding='utf-8')
 def next_id(prefix,*roots):
-    best=0; pat=re.compile(rf'^{re.escape(prefix)}-(\d+)')
-    for root in roots:
-        root=Path(root)
-        if not root.exists(): continue
-        for p in root.rglob(prefix+'-*'):
-            m=pat.match(p.name)
-            if m: best=max(best,int(m.group(1)))
-    return f'{prefix}-{best+1:04d}'
+    from repair_io import lock, private_json
+    registry=FRAMEWORK_ROOT/'runtime/runs/id-reservations.json'
+    with lock(FRAMEWORK_ROOT/'runtime/tmp/.ids.lock'):
+        saved=json.loads(registry.read_text(encoding='utf-8')) if registry.exists() else {'schema':1,'max':{}}
+        if saved.get('schema') != 1 or not isinstance(saved.get('max'),dict):
+            raise ValueError('invalid ID reservation registry; do not reset numbering')
+        best=int(saved['max'].get(prefix,0));pat=re.compile(rf'^{re.escape(prefix)}-(\d+)')
+        for root in roots:
+            root=Path(root)
+            if root.exists():
+                for p in root.rglob(prefix+'-*'):
+                    m=pat.match(p.name)
+                    if m:best=max(best,int(m.group(1)))
+        saved['max'][prefix]=best+1
+        private_json(registry,saved)
+        return f'{prefix}-{best+1:04d}'
+
 def parse_meta(p):
     try: first=Path(p).read_text(encoding='utf-8').splitlines()[0]
     except Exception: return None

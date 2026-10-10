@@ -2,6 +2,7 @@
 import re
 from pathlib import Path
 from test_ledger import TEST_FORMAT_MARKER, validate_text as validate_test_ledger_text
+from narrative_contract import TEST_MARKER, GOAL_MARKER, FACT_PREFIX, GOAL_PREFIX
 
 SECTION_TITLES = [
     "精确状态头","承上启下","术语表","执行清单","验收记录",
@@ -34,7 +35,7 @@ def meaningful_file_lines(path):
     out, skipped_heading = [], False
     for raw in text.splitlines():
         line = raw.strip()
-        if not line or line.startswith("<!-- APCF-META ") or line == TEST_FORMAT_MARKER:
+        if not line or line.startswith("<!-- APCF-META ") or line in {TEST_FORMAT_MARKER, TEST_MARKER, GOAL_MARKER}:
             continue
         if not skipped_heading and line.startswith("# "):
             skipped_heading = True
@@ -141,25 +142,39 @@ def validate_report(report, turn_dir):
     tr = Path(turn_dir)
     errors += require_embedded(tr / "CHECKLIST.md", sections[3][1], "section 3")
     errors += require_embedded(tr / "TEST.md", sections[4][1], "section 4")
+    cl_report = [line.strip() for line in sections[3][1].splitlines() if line.strip() and line.strip() != GOAL_MARKER]
+    if cl_report != meaningful_file_lines(tr / 'CHECKLIST.md'):
+        errors.append('section 3 must preserve current goals in source order, not an after-action summary')
     source_test = (tr / "TEST.md").read_text(encoding="utf-8")
     errors += ["current TEST source: " + e for e in validate_test_ledger_text(
         source_test, (tr / "CHECKLIST.md").read_text(encoding="utf-8")
     )]
     reported_lines = [line.strip() for line in sections[4][1].splitlines()
-                      if line.strip() and line.strip() != TEST_FORMAT_MARKER]
+                      if line.strip() and line.strip() not in {TEST_FORMAT_MARKER, TEST_MARKER}]
     if reported_lines != meaningful_file_lines(tr / "TEST.md"):
         errors.append("section 4 must contain exactly the current TEST lines in source order")
     # The invisible schema line may be omitted from the report, but its contract
     # still applies to the report's visible acceptance records.
     embedded_test = sections[4][1]
-    if TEST_FORMAT_MARKER in source_test:
+    if TEST_MARKER in source_test:
+        visible = "\n".join(line for line in embedded_test.splitlines() if line.strip() != TEST_MARKER)
+        embedded_test = "# 1. 当前验收记录\n\n" + TEST_MARKER + "\n\n" + visible
+    elif TEST_FORMAT_MARKER in source_test:
         visible = "\n".join(line for line in embedded_test.splitlines()
                             if line.strip() != TEST_FORMAT_MARKER)
         embedded_test = "# 1. 当前验收记录\n\n" + TEST_FORMAT_MARKER + "\n\n" + visible
     errors += [
         "section 4 TEST form: "+e
-        for e in validate_test_ledger_text(embedded_test, sections[3][1])
+        for e in validate_test_ledger_text(embedded_test,
+            ("# 1. 当前执行清单\n"+GOAL_MARKER+"\n"+sections[3][1])
+            if GOAL_MARKER in (tr / "CHECKLIST.md").read_text(encoding="utf-8") and GOAL_MARKER not in sections[3][1]
+            else sections[3][1])
     ]
+
+    if TEST_MARKER in source_test:
+        # Visible prose remains the source of truth; maps contain only hashes and offsets.
+        from prose_review import validate_review_file
+        errors += validate_review_file(report, tr)
 
     if not sections[5][1].strip():
         errors.append("section 5 full explanation is empty")

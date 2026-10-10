@@ -34,13 +34,12 @@ def _visibility(path: Path):
 
 
 def _copy_root_documents(target: Path) -> None:
-    for name in ROOT_DOCUMENTS:
-        source = ROOT / name
-        if not source.is_file() or source.is_symlink():
-            raise SystemExit("FAIL: required public distribution document is missing: " + name)
-        if _visibility(source) != "public":
-            raise SystemExit("FAIL: required distribution document must be explicitly public: " + name)
-        shutil.copy2(source, target / name)
+    from distribution_policy import members
+    selected=[x for x in members(ROOT) if '/' not in x and x not in {'AGENTS.md','CURRENT.md','.apcf-dir.yaml'}]
+    for name in selected:
+        source=ROOT/name
+        if _visibility(source)!='public':raise SystemExit('FAIL: required distribution document must be public: '+name)
+        shutil.copy2(source,target/name)
 
 
 def _ignore_examples(directory, names):
@@ -62,10 +61,13 @@ def _ignore_examples(directory, names):
 
 
 def _copy_examples(target: Path) -> None:
-    source = ROOT / "examples"
-    if source.is_symlink() or not source.is_dir() or _visibility(source) == "private":
-        raise SystemExit("FAIL: public synthetic examples/ directory is required for distribution")
-    shutil.copytree(source, target / "examples", ignore=_ignore_examples)
+    from distribution_policy import members
+    for rel in members(ROOT):
+        if rel.startswith('examples/'):
+            source=ROOT/rel
+            if _visibility(source)!='public':raise SystemExit('FAIL: example must be explicitly public: '+rel)
+            destination=target/rel;destination.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(source,destination)
 
 
 def _render_target_tree(target: Path) -> None:
@@ -135,7 +137,7 @@ def main():
         "--profile",
         choices=("core",),
         default=None,
-        help="build a Core-only candidate without optional design/components; omitted keeps the existing distribution behavior",
+        help="build a Core-only candidate without optional design/components; omitted also uses the explicit Core member registry",
     )
     args = parser.parse_args()
 

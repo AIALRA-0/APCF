@@ -1,8 +1,6 @@
 <!-- APCF-META {"schema":1,"visibility":"public"} -->
-# APCF 项目接入｜一句话入口
+# 1. 开始使用 APCF
 
-> **将 APCF 接入我当前打开的这个项目，按 `APCF_ONBOARDING.md` 完成安全调查、规则初始化、完整 Pilot 验收和首轮报告；保留原业务代码、工具链、Git 历史及前端 UI，除非我另行明确授权，否则不部署、不推送、不删除。**
+请在当前项目中读取 `.agent-project-control/interfaces/APCF_ONBOARDING.md`，核实真实工作目录与有效指令链，完成安全接入、项目事实初始化和首次完整验收；已有框架则恢复当前请求，不重装，不默认修改 UI，不发布远端
 
-首次接入前，Agent 从本发行包的 `.agent-project-control/interfaces/APCF_ONBOARDING.md` 读取执行合同；如果尚未下载，先读取公开仓库的 [接入说明](https://github.com/AIALRA-0/APCF/blob/main/docs/APCF_ONBOARDING.md) 并下载同版本 Core Release。
-
-这份文件只提供首次接入的工作流程路由；R01–R31、Writing、Style、Design、Skills、Gate、报告等内容仍以实际安装 Core 的唯一规范源为准。以后上下文丢失，应重新读取本文件、`AGENTS.md`、当前 `CURRENT.md` 以及所属阶段的 Canonical Rules，不能以过去聊天替代。
+这句话是入口，不是免检承诺；第二轮和恢复任务时同样按该入口重新核对当前版本与请求；原项目优先保留；冲突、未测和宿主无法控制的部分必须明确说明

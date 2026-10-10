@@ -126,7 +126,7 @@ def main():
             assert validate_report(bad, tr), label + ' must fail'
         (tr/'TEST.md').write_bytes(legacy_bytes)
         assert not validate_report(VALID, tr), 'historical v1 must remain readable'
-    print('PASS: v0.2.3 report contract structural selfcheck')
+    print('PASS: legacy-compatible report contract structural selfcheck')
 
 
 if __name__ == '__main__':
