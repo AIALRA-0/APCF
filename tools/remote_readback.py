@@ -16,10 +16,12 @@ import release_candidate as R
 REPO='AIALRA-0/APCF'
 
 def public_json(path):
-    req=Request('https://api.github.com/repos/'+REPO+'/'+path,headers={'Accept':'application/vnd.github+json','User-Agent':'APCF-release-readback'})
+    req=Request('https://api.github.com/repos/'+REPO+('/'+path if path else ''),headers={'Accept':'application/vnd.github+json','User-Agent':'APCF-release-readback'})
     with urlopen(req,timeout=45) as r:return json.load(r)
 
-def refs(text,expected_main,tag,allowed=()):
+def refs(text,expected_main,tag,allowed=(),*,expected_tag=None):
+    expected_tag=expected_main if expected_tag is None else expected_tag
+    if not re.fullmatch(r'[0-9a-f]{40,64}',expected_tag):raise ValueError('explicit reviewed tag commit is invalid')
     rows={}
     known={'HEAD','refs/heads/main',*[f'refs/tags/{t}{suffix}' for t in (tag,'v0.3.0-closeout-v2') for suffix in ('','^{}')]}
     for ref in allowed:
@@ -34,15 +36,18 @@ def refs(text,expected_main,tag,allowed=()):
         rows[ref]=oid
     if rows.get('refs/heads/main')!=expected_main:raise ValueError('main differs from reviewed commit')
     target=rows.get('refs/tags/'+tag+'^{}',rows.get('refs/tags/'+tag))
-    if target!=expected_main:raise ValueError('tag does not resolve to reviewed commit')
+    if target!=expected_tag:raise ValueError('tag does not resolve to reviewed commit')
     return rows
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--commit',required=True);p.add_argument('--manifest-sha256',required=True)
     p.add_argument('--download-dir',required=True);p.add_argument('--git',default='git');p.add_argument('--allow-ref',action='append',default=[])
+    p.add_argument('--tag-commit',help='separately reviewed frozen release target; defaults to --commit, never inferred from remote')
     a=p.parse_args()
     try:
         if not re.fullmatch(r'[0-9a-f]{40,64}',a.commit) or not re.fullmatch(r'[0-9a-f]{64}',a.manifest_sha256):raise ValueError('explicit pinned commit and reviewed manifest SHA required')
+        tag_commit=a.tag_commit if a.tag_commit is not None else a.commit
+        if not re.fullmatch(r'[0-9a-f]{40,64}',tag_commit):raise ValueError('explicit reviewed tag commit is invalid')
         out=R.ordinary(a.download_dir)
         if out.exists() or not out.parent.is_dir():raise ValueError('download directory must be new')
         metadata=public_json('')
@@ -53,17 +58,19 @@ def main():
         names={f'APCF-Deploy-{R.VERSION}.zip',f'APCF-Deploy-{R.VERSION}.zip.sha256','RELEASE-MANIFEST.json'}
         if len(assets)!=len(rel['assets']) or set(assets)!=names:raise ValueError('release assets differ from reviewed set')
         remote=subprocess.run([a.git,'ls-remote','https://github.com/'+REPO+'.git'],capture_output=True,text=True,encoding='utf-8',timeout=60,check=True)
-        actual_refs=refs(remote.stdout,a.commit,R.VERSION,a.allow_ref)
-        checks=public_json('commits/'+a.commit+'/check-runs?per_page=100')
-        suites=checks.get('check_runs',[])
-        # Select the latest attempt by job name. Ignore old failed attempts, never a running latest attempt.
-        latest={}
-        for v in suites:
-            name=v['name']
-            if name not in latest or v['id']>latest[name]['id']:latest[name]=v
+        actual_refs=refs(remote.stdout,a.commit,R.VERSION,a.allow_ref,expected_tag=tag_commit)
         required={'APCF Core / ubuntu-latest','APCF Core / windows-latest'}
-        if not required<=set(latest) or any(latest[n].get('app',{}).get('slug')!='github-actions' or latest[n].get('head_sha')!=a.commit or latest[n].get('status')!='completed' or latest[n].get('conclusion')!='success' for n in required):
-            raise ValueError('required current Linux/Windows CI checks not successful for reviewed commit')
+        verified_ci={}
+        for pinned_commit in dict.fromkeys((a.commit,tag_commit)):
+            suites=public_json('commits/'+pinned_commit+'/check-runs?per_page=100').get('check_runs',[])
+            # Select the latest attempt by job name; a running latest attempt is never replaced by an older success.
+            latest={}
+            for v in suites:
+                name=v['name']
+                if name not in latest or v['id']>latest[name]['id']:latest[name]=v
+            if not required<=set(latest) or any(latest[n].get('app',{}).get('slug')!='github-actions' or latest[n].get('head_sha')!=pinned_commit or latest[n].get('status')!='completed' or latest[n].get('conclusion')!='success' for n in required):
+                raise ValueError('required current Linux/Windows CI checks not successful for reviewed commit: '+pinned_commit)
+            verified_ci[pinned_commit]={n:latest[n]['id'] for n in required}
         out.mkdir(mode=0o700)
         for name in sorted(names):
             url=assets[name]['browser_download_url'];u=urlparse(url)
@@ -76,7 +83,7 @@ def main():
         if R.digest((out/'RELEASE-MANIFEST.json').read_bytes())!=a.manifest_sha256:raise ValueError('downloaded manifest differs from independently pinned candidate')
         result=R.verify(out)
         result.update(repo=REPO,commit=a.commit,release_id=rel['id'],refs=actual_refs,
-                      anonymous_https=True,checked_ci={n:latest[n]['id'] for n in required},
+                      anonymous_https=True,checked_ci=verified_ci[a.commit],tag_commit=tag_commit,tag_checked_ci=verified_ci[tag_commit],
                       status='PUBLIC_ASSETS_AND_REFERENCES_VERIFIED')
         (out/'REMOTE-READBACK.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         print(json.dumps(result,ensure_ascii=False,indent=2));return 0
