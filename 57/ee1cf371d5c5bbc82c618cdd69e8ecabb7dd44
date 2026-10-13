@@ -1,0 +1,491 @@
+.agent-project-control/core-members.json
+  s_0e8ff61e9358f0::t_bf7ae6efdf104d 1-364
+.agent-project-control/core-members.json.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_bfdcdfc3658769 1-4
+.agent-project-control/generated/TREE.html
+  s_0e8ff61e9358f0::t_f8fad9ef5cb210 5
+.agent-project-control/generated/TREE.md
+  s_0e8ff61e9358f0::t_ec0cedf8aef773 40,49-64,112-308,311-312
+.agent-project-control/interfaces/APCF_ONBOARDING.md
+  s_0e8ff61e9358f0::t_ee9450d132126f 36
+.agent-project-control/interfaces/REPORT14_DELIVERY.md
+  s_0e8ff61e9358f0::t_a2e902cd2a41f6 1-18
+.agent-project-control/reporting/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_92222c86c26509 1-3
+.agent-project-control/reporting/APPROVED-REFERENCE.md
+  s_0e8ff61e9358f0::t_d20baa1933552e 1-1061
+.agent-project-control/reporting/APPROVED-REFERENCE.md.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_cad524e7392060 1-4
+.agent-project-control/reporting/agent.local.json.example
+  s_0e8ff61e9358f0::t_81041653cccc70 1-5
+.agent-project-control/reporting/agent.local.json.example.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_de015324fc958d 1-4
+.agent-project-control/reporting/contract.json
+  s_0e8ff61e9358f0::t_4ed70f626260ad 1-458
+.agent-project-control/reporting/contract.json.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_8d878f1a1cefaa 1-4
+.agent-project-control/reporting/quality/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_64a924c693b949 1-3
+.agent-project-control/reporting/quality/reference-index.json
+  s_0e8ff61e9358f0::t_175da6eb1a211b 1-7387
+.agent-project-control/reporting/quality/reference-index.json.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_d9c984a3094b99 1-4
+.agent-project-control/reporting/quality/term-registry.json
+  s_0e8ff61e9358f0::t_976d8ac5c7eabf 1-547
+.agent-project-control/reporting/quality/term-registry.json.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_8a364ba1b3d451 1-4
+.agent-project-control/reporting/repair-index.json
+  s_0e8ff61e9358f0::t_b5284d89194074 1-1057
+.agent-project-control/reporting/repair-index.json.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_219aaf76972aaf 1-4
+.agent-project-control/reporting/report.schema.json
+  s_0e8ff61e9358f0::t_28fcd17ccf16ee 1-259
+.agent-project-control/reporting/report.schema.json.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_a511db2fad1625 1-4
+.agent-project-control/scripts/bootstrap.py
+  s_0e8ff61e9358f0::t_f60fe470e99291 293-297
+.agent-project-control/scripts/core_repair_selfcheck.py
+  s_0e8ff61e9358f0::t_e27105391bf6a6 49-64,91-99,253,257-270
+.agent-project-control/scripts/execution_session.py
+  s_0e8ff61e9358f0::t_18dff14a734f57 232-236
+.agent-project-control/scripts/finalize_turn.py
+  s_0e8ff61e9358f0::t_55c4132eb15c68 559-563
+.agent-project-control/scripts/gate_check.py
+  s_0e8ff61e9358f0::t_25e14e39ea80e5 5,122-384,411-414,810-814
+.agent-project-control/scripts/pilot_readiness.py
+  s_0e8ff61e9358f0::t_3b4b3238ccf9dd 81
+.agent-project-control/scripts/prose_review.py
+  s_0e8ff61e9358f0::t_62dbcdd27477a0 10-11,49,89,112,150,180
+.agent-project-control/scripts/repair_current_state.py
+  s_0e8ff61e9358f0::t_3333802e4b9d56 29-30
+.agent-project-control/scripts/report14/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_cc2e610035b136 1-3
+.agent-project-control/scripts/report14/__init__.py
+  s_0e8ff61e9358f0::t_000cc8dbd506a6 1-3
+.agent-project-control/scripts/report14/_vendor/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_e836f2ecd387dc 1-3
+.agent-project-control/scripts/report14/_vendor/licenses/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_74bd6f222189a5 1-3
+.agent-project-control/scripts/report14/_vendor/licenses/markdown-it-py/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_d4a770edb76b00 1-3
+.agent-project-control/scripts/report14/_vendor/licenses/markdown-it-py/LICENSE
+  s_0e8ff61e9358f0::t_2066791d18996b 1-21
+.agent-project-control/scripts/report14/_vendor/licenses/markdown-it-py/LICENSE.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_4471099fd05912 1-4
+.agent-project-control/scripts/report14/_vendor/licenses/markdown-it-py/LICENSE.markdown-it
+  s_0e8ff61e9358f0::t_48cab3acc455ee 1-22
+.agent-project-control/scripts/report14/_vendor/licenses/markdown-it-py/LICENSE.markdown-it.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_5a277f22193ad9 1-4
+.agent-project-control/scripts/report14/_vendor/licenses/mdurl/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_4ead8e992adf6e 1-3
+.agent-project-control/scripts/report14/_vendor/licenses/mdurl/LICENSE
+  s_0e8ff61e9358f0::t_1720bffb0a3333 1-46
+.agent-project-control/scripts/report14/_vendor/licenses/mdurl/LICENSE.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_23fbdcd856e9ce 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_a0a116fbd31120 1-3
+.agent-project-control/scripts/report14/_vendor/markdown_it/__init__.py
+  s_0e8ff61e9358f0::t_909541e594c00d 1-6
+.agent-project-control/scripts/report14/_vendor/markdown_it/__init__.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_933c602e2d58f4 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/_compat.py
+  s_0e8ff61e9358f0::t_5d4e579e1f2d88 1
+.agent-project-control/scripts/report14/_vendor/markdown_it/_compat.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_41c3d93a5a623c 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/_punycode.py
+  s_0e8ff61e9358f0::t_e12d7bb52004ed 1-67
+.agent-project-control/scripts/report14/_vendor/markdown_it/_punycode.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_69080175811898 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/cli/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_3eba66aaa4a392 1-3
+.agent-project-control/scripts/report14/_vendor/markdown_it/cli/__init__.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_522a46343a3e44 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/cli/parse.py
+  s_0e8ff61e9358f0::t_652d5868b62c3b 1-127
+.agent-project-control/scripts/report14/_vendor/markdown_it/cli/parse.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_d57f8f90ddcb86 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_8444025330ce00 1-3
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/__init__.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_a4c99102c9f97d 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/entities.py
+  s_0e8ff61e9358f0::t_a064c921923b71 1-5
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/entities.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_e62f893a9344bb 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/html_blocks.py
+  s_0e8ff61e9358f0::t_4830b3f7d01f4a 1-69
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/html_blocks.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_fd54053d168e78 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/html_re.py
+  s_0e8ff61e9358f0::t_5002e3b0fa8c96 1-39
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/html_re.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_14c0bbf7407896 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/normalize_url.py
+  s_0e8ff61e9358f0::t_741ace4d9efbf3 1-81
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/normalize_url.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_9c50e25b597353 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/utils.py
+  s_0e8ff61e9358f0::t_970222732cc661 1-313
+.agent-project-control/scripts/report14/_vendor/markdown_it/common/utils.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_8009adb36f8af2 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/helpers/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_09468ed2abe2b9 1-3
+.agent-project-control/scripts/report14/_vendor/markdown_it/helpers/__init__.py
+  s_0e8ff61e9358f0::t_5d95cf4b4cde79 1-6
+.agent-project-control/scripts/report14/_vendor/markdown_it/helpers/__init__.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_2c275a1c732c58 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/helpers/parse_link_destination.py
+  s_0e8ff61e9358f0::t_d4649f753d073d 1-83
+.agent-project-control/scripts/report14/_vendor/markdown_it/helpers/parse_link_destination.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_129532473320a0 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/helpers/parse_link_label.py
+  s_0e8ff61e9358f0::t_28d97bc4bd7c1b 1-44
+.agent-project-control/scripts/report14/_vendor/markdown_it/helpers/parse_link_label.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_4e7e8930ebecd8 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/helpers/parse_link_title.py
+  s_0e8ff61e9358f0::t_638d1ee68e485a 1-75
+.agent-project-control/scripts/report14/_vendor/markdown_it/helpers/parse_link_title.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_d084b9c471af77 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/main.py
+  s_0e8ff61e9358f0::t_c562883e83b4e6 1-351
+.agent-project-control/scripts/report14/_vendor/markdown_it/main.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_61a0f23ab7a879 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/parser_block.py
+  s_0e8ff61e9358f0::t_651a5f42e710dc 1-113
+.agent-project-control/scripts/report14/_vendor/markdown_it/parser_block.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_f93be161dd5e1a 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/parser_core.py
+  s_0e8ff61e9358f0::t_d5287fdcea37b0 1-46
+.agent-project-control/scripts/report14/_vendor/markdown_it/parser_core.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_790125d19fe1e2 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/parser_inline.py
+  s_0e8ff61e9358f0::t_0baad1717fc30c 1-215
+.agent-project-control/scripts/report14/_vendor/markdown_it/parser_inline.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_3f9172ed2066f1 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/port.yaml
+  s_0e8ff61e9358f0::t_f4e5220c1b2de1 1-48
+.agent-project-control/scripts/report14/_vendor/markdown_it/port.yaml.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_21092335429b50 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/presets/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_d9da11116ff974 1-3
+.agent-project-control/scripts/report14/_vendor/markdown_it/presets/__init__.py
+  s_0e8ff61e9358f0::t_c2b47bae534487 1-48
+.agent-project-control/scripts/report14/_vendor/markdown_it/presets/__init__.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_b320f16ce58c87 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/presets/commonmark.py
+  s_0e8ff61e9358f0::t_ec88871db91b41 1-75
+.agent-project-control/scripts/report14/_vendor/markdown_it/presets/commonmark.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_7b81eee3d01a17 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/presets/default.py
+  s_0e8ff61e9358f0::t_0e1251374ec166 1-36
+.agent-project-control/scripts/report14/_vendor/markdown_it/presets/default.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_1c29f4519df2e2 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/presets/zero.py
+  s_0e8ff61e9358f0::t_237958164c84d2 1-44
+.agent-project-control/scripts/report14/_vendor/markdown_it/presets/zero.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_9bcc1293102783 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/py.typed
+  s_0e8ff61e9358f0::t_65c04c04afcb38 1
+.agent-project-control/scripts/report14/_vendor/markdown_it/py.typed.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_d79a13a261d2ac 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/renderer.py
+  s_0e8ff61e9358f0::t_0f046a9f0366b4 1-356
+.agent-project-control/scripts/report14/_vendor/markdown_it/renderer.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_db15f6e0d0a7e3 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/ruler.py
+  s_0e8ff61e9358f0::t_c7a61351e4432f 1-275
+.agent-project-control/scripts/report14/_vendor/markdown_it/ruler.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_bd3ea274388bc0 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_15af6fa7359e5d 1-3
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/__init__.py
+  s_0e8ff61e9358f0::t_2167005d11a943 1-28
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/__init__.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_dcfd8ae54379ab 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/blockquote.py
+  s_0e8ff61e9358f0::t_fcf53d4fa187b2 1-368
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/blockquote.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_2f3bf31d466df8 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/code.py
+  s_0e8ff61e9358f0::t_54ed4a095eba1b 1-36
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/code.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_b471c11f2f0476 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/fence.py
+  s_0e8ff61e9358f0::t_07f2dad25a9f08 1-146
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/fence.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_55fa35495bc44a 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/heading.py
+  s_0e8ff61e9358f0::t_5ade3a97f0e451 1-69
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/heading.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_ac4a04e14e349e 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/hr.py
+  s_0e8ff61e9358f0::t_c87ee476c1c264 1-56
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/hr.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_762455ee15e161 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/html_block.py
+  s_0e8ff61e9358f0::t_39145ab1afce30 1-90
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/html_block.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_2946d8f0ba3fdf 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/lheading.py
+  s_0e8ff61e9358f0::t_c028628ad4342c 1-86
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/lheading.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_d6599a4cf88e2e 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/list.py
+  s_0e8ff61e9358f0::t_301bc342b549c8 1-408
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/list.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_683b44624f451f 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/paragraph.py
+  s_0e8ff61e9358f0::t_1c80fe5eed1665 1-66
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/paragraph.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_e5ad1b7cd30a0a 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/reference.py
+  s_0e8ff61e9358f0::t_30c08911a0b22d 1-235
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/reference.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_27581f1adeed31 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/state_block.py
+  s_0e8ff61e9358f0::t_7e18e288ae80b8 1-261
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/state_block.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_470f372ea30a77 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/table.py
+  s_0e8ff61e9358f0::t_8d3408ff31bc75 1-250
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_block/table.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_8ff0263c69ef07 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_dbfd197919d099 1-3
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/__init__.py
+  s_0e8ff61e9358f0::t_5f5e896b54cada 1-19
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/__init__.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_b52eca51cef8ef 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/block.py
+  s_0e8ff61e9358f0::t_6818a37f7b18c8 1-13
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/block.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_732ff2d452a4c9 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/inline.py
+  s_0e8ff61e9358f0::t_a6a200b016242d 1-10
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/inline.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_52e384e60804c4 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/linkify.py
+  s_0e8ff61e9358f0::t_2cee4b1d67e92d 1-149
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/linkify.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_d13bbbe7a5bb1d 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/normalize.py
+  s_0e8ff61e9358f0::t_99fdf8aa9f031f 1-19
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/normalize.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_4642321ef66062 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/replacements.py
+  s_0e8ff61e9358f0::t_0ef07d3c327b78 1-127
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/replacements.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_d78d9758962350 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/smartquotes.py
+  s_0e8ff61e9358f0::t_7c1fbc15df3847 1-202
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/smartquotes.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_43cf9749297668 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/state_core.py
+  s_0e8ff61e9358f0::t_5d758e23a94a54 1-25
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/state_core.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_b89674aa41e83f 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/text_join.py
+  s_0e8ff61e9358f0::t_43ff2de87cd520 1-53
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_core/text_join.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_42a92d04deee5d 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_0490a14364cafa 1-3
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/__init__.py
+  s_0e8ff61e9358f0::t_7673ce3d9a8549 1-31
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/__init__.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_52a29ac7cb8b45 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/autolink.py
+  s_0e8ff61e9358f0::t_5775735965543d 1-77
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/autolink.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_e9cb01b3be3f70 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/backticks.py
+  s_0e8ff61e9358f0::t_01ece827049874 1-72
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/backticks.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_fc64f99b18572a 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/balance_pairs.py
+  s_0e8ff61e9358f0::t_970742aed52b13 1-138
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/balance_pairs.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_74bf17472fafb1 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/emphasis.py
+  s_0e8ff61e9358f0::t_1022c351ffefcc 1-102
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/emphasis.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_c771aec9ecc1f2 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/entity.py
+  s_0e8ff61e9358f0::t_b2189df2b4ab02 1-53
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/entity.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_a338d8bcdb4110 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/escape.py
+  s_0e8ff61e9358f0::t_6a3ebe522f1a82 1-93
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/escape.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_f4f19036267dab 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/fragments_join.py
+  s_0e8ff61e9358f0::t_0b57e6d9a1812d 1-54
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/fragments_join.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_ce4de837af2263 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/html_inline.py
+  s_0e8ff61e9358f0::t_49d357313134f5 1-43
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/html_inline.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_598a5496873c76 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/image.py
+  s_0e8ff61e9358f0::t_de9d1bb29bea32 1-148
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/image.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_c9bce8530071b7 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/link.py
+  s_0e8ff61e9358f0::t_a8dadebff7c815 1-149
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/link.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_eb4a7717dda8c1 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/linkify.py
+  s_0e8ff61e9358f0::t_029e4bcfd18081 1-62
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/linkify.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_81de990db61298 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/newline.py
+  s_0e8ff61e9358f0::t_3910de86d7a96e 1-44
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/newline.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_afe23ef7b47047 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/state_inline.py
+  s_0e8ff61e9358f0::t_0ad4dccdd02a20 1-167
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/state_inline.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_094f62a4ade58d 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/strikethrough.py
+  s_0e8ff61e9358f0::t_cc630bf335ced0 1-173
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/strikethrough.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_6f5219a352b7de 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/text.py
+  s_0e8ff61e9358f0::t_6a8b4fd182aaf1 1-23
+.agent-project-control/scripts/report14/_vendor/markdown_it/rules_inline/text.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_a6c68d57168daf 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/token.py
+  s_0e8ff61e9358f0::t_5a4c2feb73c6f2 1-178
+.agent-project-control/scripts/report14/_vendor/markdown_it/token.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_3935bf4833bdcc 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/tree.py
+  s_0e8ff61e9358f0::t_4ffb4f30c073b7 1-333
+.agent-project-control/scripts/report14/_vendor/markdown_it/tree.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_795c4437a60756 1-4
+.agent-project-control/scripts/report14/_vendor/markdown_it/utils.py
+  s_0e8ff61e9358f0::t_acc2c0d528c790 1-194
+.agent-project-control/scripts/report14/_vendor/markdown_it/utils.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_03e3cc027a8c34 1-4
+.agent-project-control/scripts/report14/_vendor/mdurl/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_7ee672dd0c238a 1-3
+.agent-project-control/scripts/report14/_vendor/mdurl/__init__.py
+  s_0e8ff61e9358f0::t_45ee5f7622079c 1-18
+.agent-project-control/scripts/report14/_vendor/mdurl/__init__.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_ea0fd3b7d67d6b 1-4
+.agent-project-control/scripts/report14/_vendor/mdurl/_decode.py
+  s_0e8ff61e9358f0::t_a4e7b7ae953bb7 1-104
+.agent-project-control/scripts/report14/_vendor/mdurl/_decode.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_65c76ea6e05b55 1-4
+.agent-project-control/scripts/report14/_vendor/mdurl/_encode.py
+  s_0e8ff61e9358f0::t_f208b7f212c80c 1-85
+.agent-project-control/scripts/report14/_vendor/mdurl/_encode.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_9a7b3871b44fd6 1-4
+.agent-project-control/scripts/report14/_vendor/mdurl/_format.py
+  s_0e8ff61e9358f0::t_6e16dfa7fb9c80 1-27
+.agent-project-control/scripts/report14/_vendor/mdurl/_format.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_38986006b8d45f 1-4
+.agent-project-control/scripts/report14/_vendor/mdurl/_parse.py
+  s_0e8ff61e9358f0::t_0e7b1a7bda45b0 1-304
+.agent-project-control/scripts/report14/_vendor/mdurl/_parse.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_2f7af688ec06f2 1-4
+.agent-project-control/scripts/report14/_vendor/mdurl/_url.py
+  s_0e8ff61e9358f0::t_7e1ef2d2397ded 1-14
+.agent-project-control/scripts/report14/_vendor/mdurl/_url.py.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_c30460ee23e5c3 1-4
+.agent-project-control/scripts/report14/_vendor/mdurl/py.typed
+  s_0e8ff61e9358f0::t_93bd7bc94619d6 1
+.agent-project-control/scripts/report14/_vendor/mdurl/py.typed.apcf-meta.yaml
+  s_0e8ff61e9358f0::t_8d2bbf37d28a73 1-4
+.agent-project-control/scripts/report14/bindings.py
+  s_0e8ff61e9358f0::t_bd276eb9a433bc 1-157
+.agent-project-control/scripts/report14/bridge.py
+  s_0e8ff61e9358f0::t_a7ae59026da0af 1-263
+.agent-project-control/scripts/report14/contract.py
+  s_0e8ff61e9358f0::t_5eca187e1b7ce0 1-44
+.agent-project-control/scripts/report14/markdown.py
+  s_0e8ff61e9358f0::t_68e1b3733e191a 1-108
+.agent-project-control/scripts/report14/render.py
+  s_0e8ff61e9358f0::t_a39ccf9ddcbc64 1-73
+.agent-project-control/scripts/report14/repair.py
+  s_0e8ff61e9358f0::t_b2cb3b39f70888 1-251
+.agent-project-control/scripts/report14/runtime.py
+  s_0e8ff61e9358f0::t_818c54ca13ecde 1-125
+.agent-project-control/scripts/report14/storage.py
+  s_0e8ff61e9358f0::t_b51781a96ffb15 1-119
+.agent-project-control/scripts/report14/validate.py
+  s_0e8ff61e9358f0::t_85f4f456671c5c 1-284
+.agent-project-control/scripts/report14_selfcheck.py
+  s_0e8ff61e9358f0::t_bf9ce7b43503b3 1-39
+.agent-project-control/scripts/report_bridge/.apcf-dir.yaml
+  s_0e8ff61e9358f0::t_0cc832360f78e0 1-3
+.agent-project-control/scripts/report_bridge/__init__.py
+  s_0e8ff61e9358f0::t_8d764e29e12004 1-3
+.agent-project-control/scripts/report_bridge/binding.py
+  s_0e8ff61e9358f0::t_c75b0584e05e69 1-27
+.agent-project-control/scripts/report_bridge/cli.py
+  s_0e8ff61e9358f0::t_f76894c76fb596 1-38
+.agent-project-control/scripts/report_bridge/contract.py
+  s_0e8ff61e9358f0::t_d246bdcac17fff 1-245
+.agent-project-control/scripts/report_bridge/glossary.py
+  s_0e8ff61e9358f0::t_a14870b37e2127 1-25
+.agent-project-control/scripts/report_bridge/guidance.py
+  s_0e8ff61e9358f0::t_ae121ec21d07a8 1-31
+.agent-project-control/scripts/report_bridge/native.py
+  s_0e8ff61e9358f0::t_bef4b90a508619 1-347
+.agent-project-control/scripts/report_bridge/ports.py
+  s_0e8ff61e9358f0::t_4cf2d2d69c5ce5 1-295
+.agent-project-control/scripts/report_bridge/publication.py
+  s_0e8ff61e9358f0::t_9d33affa88f821 1-39
+.agent-project-control/scripts/report_bridge/quality.py
+  s_0e8ff61e9358f0::t_49f024fcef7be9 1-81
+.agent-project-control/scripts/report_bridge/render.py
+  s_0e8ff61e9358f0::t_d517d50af53704 1-119
+.agent-project-control/scripts/report_bridge/repair.py
+  s_0e8ff61e9358f0::t_50fd4aadc95e1a 1-124
+.agent-project-control/scripts/report_bridge/repair_packet.py
+  s_0e8ff61e9358f0::t_210bd5f0d13ad6 1-54
+.agent-project-control/scripts/report_bridge/storage.py
+  s_0e8ff61e9358f0::t_f0458c8a1ca37d 1-140
+.agent-project-control/scripts/report_bridge/transport.py
+  s_0e8ff61e9358f0::t_00532c16fed66a 1-277
+.agent-project-control/scripts/report_contract.py
+  s_0e8ff61e9358f0::t_40a4a453096f1a 197-200
+.agent-project-control/scripts/report_delivery.py
+  s_0e8ff61e9358f0::t_98672e731fc933 1-106
+.agent-project-control/scripts/report_quality_selfcheck.py
+  s_0e8ff61e9358f0::t_da912d2c43111b 1-2953
+.agent-project-control/scripts/routing_activity.py
+  s_0e8ff61e9358f0::t_3c1815d1bb4423 750-751,763
+.agent-project-control/scripts/routing_receipt.py
+  s_0e8ff61e9358f0::t_76c490ceaf81c3 366-370
+.agent-project-control/scripts/selfcheck.py
+  s_0e8ff61e9358f0::t_7a5b7ae3d396ae 875-878,970-978,982,989-993
+.agent-project-control/scripts/state_integrity.py
+  s_0e8ff61e9358f0::t_9de8357bb2fc1d 71-75
+.agent-project-control/scripts/supervisor.py
+  s_0e8ff61e9358f0::t_db3eda76d9f51c 404-408
+.agent-project-control/scripts/terminology_review.py
+  s_0e8ff61e9358f0::t_91e46a9ab51485 11,145,251-252,280-287,321,344,351-352,376-377,405-406,414-415,446-447,598-602
+.agent-project-control/scripts/writing_guard.py
+  s_0e8ff61e9358f0::t_5a393e908ae3e9 10,87-92,102-112,150-152,154,163-453,455,459-461,517,519,528,535-536,547-554,647,650,693-697
+AGENTS.md
+  s_0e8ff61e9358f0::t_e2c9dedc5484ae 125-128
+CURRENT.md
+  s_0e8ff61e9358f0::t_70ec0e3dfcc0b2 2-4,6-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "57ee1cf371d5c5bbc82c618cdd69e8ecabb7dd44",
+  "prompts": {},
+  "sessions": {
+    "s_0e8ff61e9358f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10f02-00e5-7440-8971-e8ffd0d490e7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "AIALRA-0 <aialra@163.com>"
+    }
+  }
+}
