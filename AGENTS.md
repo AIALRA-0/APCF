@@ -122,3 +122,7 @@
 首次接入、每个有效新请求、压缩恢复和切换目录时，读取 `.agent-project-control/interfaces/APCF_ONBOARDING.md`；它协调正式路由、当前请求与实际待发送文本，不取代六模块、Writing、Style 或 Design 正文
 
 当前发行增加 `.agent-project-control/interfaces/EXECUTION_SUPERVISION.md` 的轻量协调入口；每轮适用时读取它并复用原生命周期，不把该协作入口等同于桌面全部工具的不可绕过监督
+
+<!-- APCF-REPORT14-ENTRY BEGIN -->
+正式执行报告与 CURRENT.md 使用 reporting/contract.json 的14章契约；旧0—9章只用于历史兼容；先读取 reporting/APPROVED-REFERENCE.md，普通问答不套用；当前用户批准的报告质量补丁将完整正文同源保存于 TURN/CURRENT，聊天发送同一来源、报告摘要和修订的受检短摘要；经 scripts/report_delivery.py deliver（实际 --turn、--request-id）输出后直接发送，不再自由改写；局部修复最多两轮，兜底不计内容质量通过；内部诊断不向用户透传，真实失败、未验证和必要授权条件如实保留；报告保存不等于业务 Finalize；具体入口见 .agent-project-control/interfaces/REPORT14_DELIVERY.md；
+<!-- APCF-REPORT14-ENTRY END -->

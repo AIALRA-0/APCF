@@ -1,0 +1,458 @@
+{
+  "schema_version": 1,
+  "contract_id": "apcf-report14/1.0.0",
+  "reference_sha256": "4b65d8572619e10a5c5a64946156d2e099e2011f94791815ef2220824a6dd179",
+  "reference_file": "APPROVED-REFERENCE.md",
+  "sections": [
+    {
+      "number": 1,
+      "title": "精确状态头",
+      "heading": "## 1. 精确状态头",
+      "kind": "header",
+      "groups": [
+        {
+          "title": "当前 IT",
+          "fields": [
+            "IT 编号及标题",
+            "长期工作目标",
+            "当前进度",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "当前 TR",
+          "fields": [
+            "TR 编号及标题",
+            "所属 IT",
+            "用户具体要求",
+            "本轮处理范围",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "时间",
+          "fields": [
+            "记录事件",
+            "发生时间",
+            "核对来源",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "版本",
+          "fields": [
+            "当前产品",
+            "正式版本",
+            "候选版本",
+            "版本关系",
+            "动态扩展"
+          ],
+          "optional_fields": [
+            "候选版本",
+            "版本关系"
+          ]
+        },
+        {
+          "title": "生产提交",
+          "fields": [
+            "运行环境",
+            "当前生产提交",
+            "本轮候选提交",
+            "本轮部署情况",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "入口",
+          "fields": [
+            "主要入口",
+            "所属环境",
+            "访问条件",
+            "次要入口",
+            "动态扩展"
+          ],
+          "optional_fields": [
+            "次要入口"
+          ]
+        },
+        {
+          "title": "执行清单",
+          "fields": [
+            "清单来源",
+            "清单总数",
+            "执行统计",
+            "关键情况",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "文件修改",
+          "fields": [
+            "修改范围",
+            "核心变化",
+            "保护情况",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "验收摘要",
+          "fields": [
+            "验收来源",
+            "验收范围",
+            "状态统计",
+            "总体判断",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "关键证据",
+          "fields": [
+            "主要证明内容",
+            "关键证据来源",
+            "核对情况",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "结果状态",
+          "fields": [
+            "本轮目标",
+            "已完成事项",
+            "未完成事项",
+            "整体状态",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "剩余限制",
+          "fields": [
+            "当前情况",
+            "产生原因",
+            "实际影响",
+            "解除方向",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        },
+        {
+          "title": "补充说明",
+          "fields": [
+            "额外重要事实",
+            "单独说明原因",
+            "实际影响",
+            "动态扩展"
+          ],
+          "optional_fields": []
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "承上启下",
+      "heading": "## 2. 承上启下",
+      "kind": "handoff",
+      "subheadings": [
+        "上轮进展",
+        "本轮动因",
+        "本轮处理",
+        "当前落点"
+      ]
+    },
+    {
+      "number": 3,
+      "title": "术语表",
+      "heading": "## 3. 术语表",
+      "kind": "glossary"
+    },
+    {
+      "number": 4,
+      "title": "执行清单",
+      "heading": "## 4. 执行清单",
+      "kind": "records",
+      "prefix": "CL",
+      "fields": [
+        "任务缘由",
+        "行动要求",
+        "风险说明",
+        "验收标准",
+        "执行结果",
+        "失败原因",
+        "阻塞原因",
+        "处理建议",
+        "动态扩展"
+      ],
+      "statuses": [
+        "已完成",
+        "失败",
+        "阻塞"
+      ],
+      "conditional_fields": [
+        "失败原因",
+        "阻塞原因",
+        "处理建议"
+      ],
+      "nullable_fields": [
+        "动态扩展"
+      ],
+      "nested": {},
+      "overview": "执行总览"
+    },
+    {
+      "number": 5,
+      "title": "文件修改",
+      "heading": "## 5. 文件修改",
+      "kind": "records",
+      "prefix": "MOD",
+      "fields": [
+        "对应任务",
+        "修改对象",
+        "修改结果",
+        "动态扩展"
+      ],
+      "statuses": [],
+      "conditional_fields": [],
+      "nullable_fields": [
+        "动态扩展"
+      ],
+      "nested": {
+        "修改对象": "changes"
+      },
+      "overview": "修改总览"
+    },
+    {
+      "number": 6,
+      "title": "验收摘要",
+      "heading": "## 6. 验收摘要",
+      "kind": "records",
+      "prefix": "TEST",
+      "fields": [
+        "对应任务",
+        "验收方式",
+        "预期结果",
+        "实际结果",
+        "失败原因",
+        "阻塞原因",
+        "处理建议",
+        "关联证据",
+        "动态扩展"
+      ],
+      "statuses": [
+        "通过",
+        "失败",
+        "阻塞",
+        "未执行"
+      ],
+      "conditional_fields": [
+        "失败原因",
+        "阻塞原因",
+        "处理建议"
+      ],
+      "nullable_fields": [
+        "动态扩展"
+      ],
+      "nested": {},
+      "overview": "验收总览"
+    },
+    {
+      "number": 7,
+      "title": "关键证据",
+      "heading": "## 7. 关键证据",
+      "kind": "records",
+      "prefix": "EV",
+      "fields": [
+        "关联事项",
+        "证据来源",
+        "证明内容",
+        "核对情况",
+        "动态扩展"
+      ],
+      "statuses": [],
+      "conditional_fields": [],
+      "nullable_fields": [
+        "动态扩展"
+      ],
+      "nested": {
+        "证据来源": "sources"
+      }
+    },
+    {
+      "number": 8,
+      "title": "结果状态",
+      "heading": "## 8. 结果状态",
+      "kind": "records",
+      "prefix": "RES",
+      "fields": [
+        "对应目标",
+        "实际成果",
+        "结果判定",
+        "交付情况",
+        "关联记录",
+        "动态扩展"
+      ],
+      "statuses": [],
+      "conditional_fields": [],
+      "nullable_fields": [
+        "动态扩展"
+      ],
+      "nested": {}
+    },
+    {
+      "number": 9,
+      "title": "剩余限制",
+      "heading": "## 9. 剩余限制",
+      "kind": "records",
+      "prefix": "LIM",
+      "fields": [
+        "当前限制",
+        "实际影响",
+        "解除条件",
+        "关联记录",
+        "动态扩展"
+      ],
+      "statuses": [],
+      "conditional_fields": [],
+      "nullable_fields": [
+        "动态扩展"
+      ],
+      "nested": {}
+    },
+    {
+      "number": 10,
+      "title": "完整说明",
+      "heading": "## 10. 完整说明",
+      "kind": "prose"
+    },
+    {
+      "number": 11,
+      "title": "关键要点",
+      "heading": "## 11. 关键要点",
+      "kind": "keypoints"
+    },
+    {
+      "number": 12,
+      "title": "用户需要执行",
+      "heading": "## 12. 用户需要执行",
+      "kind": "records",
+      "prefix": "UA",
+      "fields": [
+        "操作缘由",
+        "操作步骤",
+        "完成判据",
+        "反馈与记录",
+        "关联记录",
+        "动态扩展"
+      ],
+      "statuses": [],
+      "conditional_fields": [],
+      "nullable_fields": [
+        "动态扩展",
+        "关联记录"
+      ],
+      "nested": {
+        "操作步骤": "ordered",
+        "完成判据": "bullets",
+        "反馈与记录": "feedback"
+      }
+    },
+    {
+      "number": 13,
+      "title": "需要继续讨论、搜索或决策",
+      "heading": "## 13. 需要继续讨论、搜索或决策",
+      "kind": "records",
+      "prefix": "Q",
+      "fields": [
+        "事项性质",
+        "当前基础",
+        "待明确问题",
+        "可行方向",
+        "推进安排",
+        "预期返回",
+        "明确条件",
+        "关联记录",
+        "动态扩展"
+      ],
+      "statuses": [],
+      "conditional_fields": [
+        "可行方向"
+      ],
+      "nullable_fields": [
+        "动态扩展",
+        "关联记录"
+      ],
+      "nested": {
+        "可行方向": "directions"
+      }
+    },
+    {
+      "number": 14,
+      "title": "下一步推荐",
+      "heading": "## 14. 下一步推荐",
+      "kind": "records",
+      "prefix": "NEXT",
+      "fields": [
+        "承接结果",
+        "推荐理由",
+        "下轮目标",
+        "建议下轮输入",
+        "预期交付",
+        "关联记录",
+        "动态扩展"
+      ],
+      "statuses": [],
+      "conditional_fields": [
+        "关联记录"
+      ],
+      "nullable_fields": [
+        "动态扩展",
+        "关联记录"
+      ],
+      "nested": {}
+    }
+  ],
+  "states": {
+    "none": "本轮无相关事项",
+    "not_applicable": "本轮不适用",
+    "unknown": "当前尚无足够记录确认本区内容"
+  },
+  "extension_heading": "### 补充材料",
+  "changes": [
+    "新增",
+    "修改",
+    "删除",
+    "移动",
+    "重命名"
+  ],
+  "reference_order": [
+    "CL",
+    "MOD",
+    "TEST",
+    "EV"
+  ],
+  "overrides": [
+    {
+      "id": "USER-14-ALWAYS",
+      "reason": "本轮明确要求14个主标题始终保留，覆盖原参考中允许整章省略的表述；内容按适用性处理。"
+    },
+    {
+      "id": "REPORT-NONBLOCKING",
+      "reason": "格式修复有界；业务未达标不阻断报告；不放行未经授权发布或虚构完成。"
+    },
+    {
+      "id": "REF-EXAMPLES",
+      "reason": "参考内独立教学案例不做跨章节真实引用验收；正式报告引用必须核对当前记录。"
+    },
+    {
+      "id": "BP-LENGTH",
+      "reason": "100—120字为案例表达指导，不作为所有字段的硬性长度门槛。"
+    }
+  ]
+}

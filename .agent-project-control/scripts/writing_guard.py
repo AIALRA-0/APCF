@@ -7,6 +7,7 @@ from reader output, after the original report has passed its existing validators
 """
 from __future__ import annotations
 import argparse
+from report14.bindings import is14
 import hashlib
 import json
 import re
@@ -83,6 +84,12 @@ def reader_view(text: str) -> str:
 
 def section(text: str, number: int) -> tuple[str,int]:
     """Locate a report section without stripping away meaningful indentation."""
+    if is14(text):
+        from report14.markdown import parse
+        doc=parse(text);found=[s for s in doc.sections if s.number==number]
+        if len(found)!=1:return '',0
+        s=found[0]
+        return ''.join(doc.lines[s.body_line:s.end]),s.body_line
     matches=[m for m in TOP.finditer(normalize(text))]
     found=[(i,m) for i,m in enumerate(matches) if int(m[1])==number]
     if len(found)!=1:return '',0
@@ -92,7 +99,17 @@ def section(text: str, number: int) -> tuple[str,int]:
 
 def glossary(text: str) -> tuple[list[dict],list[str]]:
     """Every real glossary term is a top-level titled BP, not a child definition."""
-    body,offset=section(normalize(text),2)
+    body,offset=section(normalize(text),3 if is14(text) else 2)
+    if is14(text):
+        from report14.contract import EMPTY
+        from report14.markdown import parse
+        doc=parse(text);found=[s for s in doc.sections if s.number==3]
+        value=body.strip()
+        # An explicit empty chapter is distinct from a malformed glossary.
+        # Only a sole paragraph can use the shared contract's empty markers;
+        # extra lists, fences or content still undergo the real carrier checks.
+        marker=re.split('[：；]',value,1)[0]
+        if found and (not value or len(found[0].nodes)==1 and found[0].nodes[0].type=='paragraph' and marker in EMPTY):return [],[]
     errors=[];entries=[];seen=set()
     for line_no,line,protected in visible_lines(body):
         if not line.strip():continue
@@ -130,8 +147,11 @@ def prose_without_protected(text: str) -> str:
         # Actual paths, flags, identifiers, numbers and statuses can be literal.
         # Plain `CI` or `Gate` is not automatically a machine-literal exemption.
         line=re.sub(r'`([^`]+)`',lambda m:' ' if re.search(r'[./_\x5c=]|^--|\d',m[1]) else m[1],line)
+        # Only the exact numeric-seconds inline-LaTeX carrier is non-prose.
+        # Doubled slashes and any extra English remain visible to the scanner.
+        line=re.sub(r'\$\d+(?:\.\d+)?\\,\\mathrm\{s\}\$',' ',line)
         line=re.sub(r'【(?:PASS|FAIL|BLOCKED|对应 CL-[^】]*|TEST-[^】]*|CL-[^】]*)】','',line)
-        line=re.sub(r'(?<!\w)(?:IT|TR|CL|TEST|REG|PA|MAT|ADR|RB)-[0-9A-Za-z_-]+|\b[WSDR]\d{2}\b|\bv\d+(?:\.\d+)+\b',' ',line)
+        line=re.sub(r'(?<![A-Za-z0-9_])(?:IT|TR|CL|MOD|TEST|EV|RES|LIM|UA|Q|NEXT|REG|PA|MAT|ADR|RB)-[0-9A-Za-z_-]+(?![A-Za-z0-9_])|(?<![A-Za-z0-9_])[WSDR]\d{2}(?![A-Za-z0-9_])|(?<![A-Za-z0-9_])v\d+(?:\.\d+)+(?![A-Za-z0-9_])',' ',line)
         out.append(line)
     return '\n'.join(out)
 
@@ -140,12 +160,305 @@ def _nonempty(value: Any) -> bool:
     return isinstance(value,str) and bool(value.strip()) and value.strip() not in PLACEHOLDERS
 
 
-def content_errors(text: str, review: dict | None = None) -> list[str]:
+def _line_offsets(lines: list[str]) -> list[int]:
+    offsets=[0]
+    for line in lines:offsets.append(offsets[-1]+len(line))
+    return offsets
+
+
+def _field_prefix_spans(doc, text: str, field: dict, prefix: str) -> list[tuple[int,int]] | None:
+    """Map a verified native field prefix back to its exact visible source bytes."""
+    if not prefix or not isinstance(field.get('value'),str) or not field['value'].startswith(prefix):return None
+    offsets=_line_offsets(doc.lines)
+    first,last=field.get('line'),field.get('end')
+    if not isinstance(first,int) or not isinstance(last,int) or not 0<=first<last<=len(doc.lines):return None
+    start,end=offsets[first],offsets[last]
+    block=text[start:end]
+    colon=block.find('：')
+    if colon<0:return None
+    raw=block[colon+1:]
+    raw_index=0;prefix_index=0;spans=[]
+    while prefix_index<len(prefix):
+        if prefix[prefix_index]=='\n':
+            if raw_index>=len(raw) or raw[raw_index]!='\n':return None
+            raw_index+=1;prefix_index+=1
+            while raw_index<len(raw) and raw[raw_index] in ' \t':raw_index+=1
+            continue
+        if raw_index>=len(raw) or raw[raw_index]!=prefix[prefix_index]:return None
+        spans.append((start+colon+1+raw_index,start+colon+2+raw_index))
+        raw_index+=1;prefix_index+=1
+    return spans
+
+
+def _field_token_spans(doc, text: str, field: dict, token: str) -> list[tuple[int,int]] | None:
+    """Map exact token occurrences inside one parsed Markdown field to source offsets."""
+    offsets=_line_offsets(doc.lines)
+    first,last=field.get('line'),field.get('end')
+    if not isinstance(first,int) or not isinstance(last,int) or not 0<=first<last<=len(doc.lines):return None
+    start,end=offsets[first],offsets[last]
+    block=text[start:end]
+    colon=block.find('：')
+    if colon<0:return None
+    raw=block[colon+1:]
+    pattern=re.compile(r'(?<![A-Za-z0-9_./-])'+re.escape(token)+r'(?![A-Za-z0-9_./-])')
+    return [(start+colon+1+match.start(),start+colon+1+match.end())
+            for match in pattern.finditer(raw)]
+
+
+def _blank_spans(text: str, spans: list[tuple[int,int]]) -> str:
+    if not spans:return text
+    chars=list(text)
+    for start,end in spans:
+        for index in range(start,end):
+            if chars[index]!='\n':chars[index]=' '
+    return ''.join(chars)
+
+
+def _current_turn_sources(turn_context: Path):
+    """Use the existing current-root Turn parser and retain its immutable byte snapshot."""
+    import execution_session
+    from report14.bindings import load_context, safe_turn
+    root=Path(execution_session.ROOT).resolve()
+    turn=safe_turn(root,Path(turn_context))
+    context=load_context(root,turn)
+    expected={ (turn/name).relative_to(root).as_posix() for name in ('REQUEST.md','CHECKLIST.md','TEST.md') }
+    if not expected.issubset(context.get('source_hashes',{})):
+        raise ValueError('current Turn request or source ledger snapshot is incomplete')
+    return root,turn,context
+
+
+def _source_bound_view(text: str, turn_context: Path) -> tuple[str,list[str]]:
+    """Mask only exact report prefixes bound to the current native ledgers."""
+    from report14.markdown import parse, fields as markdown_fields, records as markdown_records
+    from repair_io import inside
+    from test_ledger import parse_checklist, parse_tests
+
+    errors=[];spans=[];evidence_snapshots={}
+    try:
+        root,turn,context=_current_turn_sources(turn_context)
+        from report14.bindings import unchanged
+        checklist_text=inside(root,(turn/'CHECKLIST.md').relative_to(root).as_posix(),must_exist=True).read_bytes().decode('utf-8-sig')
+        test_text=inside(root,(turn/'TEST.md').relative_to(root).as_posix(),must_exist=True).read_bytes().decode('utf-8-sig')
+        if not inside(root,(turn/'REQUEST.md').relative_to(root).as_posix(),must_exist=True).is_file():
+            raise ValueError('current Turn request is missing')
+        checklist=parse_checklist(checklist_text);tests=parse_tests(test_text)
+        doc=parse(text)
+    except (OSError,UnicodeError,ValueError,TypeError) as exc:
+        return text,['当前 Turn 的 Checklist／TEST 来源无法读取或解析：'+str(exc)]
+    if not checklist or not tests:return text,['当前 Turn 的 Checklist／TEST 来源缺少可解析记录']
+
+    cl_rows={row.get('id'):row for row in checklist if isinstance(row,dict) and row.get('id')}
+    test_rows={row.get('id'):row for row in tests if isinstance(row,dict) and row.get('id')}
+    cl_duplicates=len(cl_rows)!=len(checklist);test_duplicates=len(test_rows)!=len(tests)
+    sections={section.number:section for section in doc.sections}
+
+    def source_error(label):errors.append(label+'：当前报告字段未与原生记录精确对齐')
+    def mask_field(field,row,prefix,label):
+        field_spans=_field_prefix_spans(doc,text,field,prefix)
+        if field_spans is None:source_error(label)
+        else:spans.extend(field_spans)
+    def checklist_prefix(row,key):
+        if row.get('format_version')==3:
+            import narrative_contract
+            prose=row.get('_prose');mapping=row.get('_spans')
+            if (not isinstance(prose,str) or not isinstance(mapping,dict)
+                    or set(mapping)!=set(narrative_contract.GOAL_FIELDS)):
+                return None
+            bounds=mapping.get(key)
+            if (not isinstance(bounds,list) or len(bounds)!=2
+                    or any(type(value) is not int for value in bounds)
+                    or not 0<=bounds[0]<bounds[1]<=len(prose)):
+                return None
+            # parse_checklist has already checked the v3 digest and map against this current source.
+            return prose[bounds[0]:bounds[1]]
+        prefix=row.get(key)
+        if not isinstance(prefix,str):prefix=row.get('body',row.get('_prose',''))
+        return prefix if isinstance(prefix,str) else None
+    def snapshot_evidence(path,locator):
+        rel=path.relative_to(root).as_posix()
+        current=__import__('hashlib').sha256(path.read_bytes()).hexdigest()
+        previous=evidence_snapshots.get(rel)
+        if previous is not None and previous!=current:
+            errors.append('当前 TEST 引用的证据在检查期间发生变化：'+locator)
+            return False
+        evidence_snapshots[rel]=current
+        return True
+
+    section4=sections.get(4)
+    if section4:
+        records,_=markdown_records(section4)
+        for record in records:
+            ids=[part for part in record.get('parts',[]) if re.fullmatch(r'CL-[A-Za-z0-9_-]+',part)]
+            if not ids:continue
+            if len(ids)!=1 or cl_duplicates or ids[0] not in cl_rows:
+                source_error('第4章 '+('/'.join(ids) or 'CL-ID'))
+                continue
+            row=cl_rows[ids[0]]
+            for field in record.get('fields',[]):
+                label=field.get('name','').strip('*` ')
+                key={'任务缘由':'problem','行动要求':'requirement','验收标准':'criterion'}.get(label)
+                if key is None:continue
+                prefix=checklist_prefix(row,key)
+                mask_field(field,row,prefix,f'第4章 {ids[0]} {label}')
+        for field in markdown_fields(section4.nodes):
+            ids=re.findall(r'CL-[A-Za-z0-9_-]+',field.get('name',''))
+            if not ids:continue
+            if len(ids)!=1 or cl_duplicates or ids[0] not in cl_rows:
+                source_error('第4章 '+('/'.join(ids) or 'CL-ID'))
+                continue
+            row=cl_rows[ids[0]]
+            prefix=row.get('body',row.get('_prose',''))
+            mask_field(field,row,prefix,f'第4章 {ids[0]} 原生目标')
+
+    section6=sections.get(6)
+    if section6:
+        records,_=markdown_records(section6)
+        for record in records:
+            ids=[part for part in record.get('parts',[]) if re.fullmatch(r'TEST-[A-Za-z0-9_-]+',part)]
+            if not ids:continue
+            if len(ids)!=1 or test_duplicates or ids[0] not in test_rows:
+                source_error('第6章 '+('/'.join(ids) or 'TEST-ID'))
+                continue
+            row=test_rows[ids[0]]
+            for field in record.get('fields',[]):
+                label=field.get('name','').strip('*` ')
+                if label=='验收方式':prefix=str(row.get('context',''))+'；'+str(row.get('action',''))
+                elif label=='预期结果':prefix=row.get('expected','')
+                elif label=='关联证据':
+                    source_evidence=str(row.get('evidence',''))
+                    locators={match[0] for match in re.finditer(
+                        r'(?<![A-Za-z0-9_./-])evidence/[A-Za-z0-9_./-]*[A-Za-z0-9_/-]',
+                        source_evidence)}
+                    for locator in sorted(locators):
+                        token_spans=_field_token_spans(doc,text,field,locator)
+                        if token_spans is None:
+                            source_error(f'第6章 {ids[0]} {label}')
+                            continue
+                        if not token_spans:continue
+                        try:
+                            path=inside(turn,locator,must_exist=True)
+                            if not path.is_file() or not path.is_relative_to((turn/'evidence').resolve()):
+                                raise ValueError('evidence path is not a current Turn evidence file')
+                            if snapshot_evidence(path,locator):spans.extend(token_spans)
+                        except (ValueError,OSError):
+                            errors.append(f'第6章 {ids[0]} 关联证据：当前 TEST 引用的证据文件缺失或越界：'+locator)
+                    continue
+                else:continue
+                mask_field(field,row,prefix,f'第6章 {ids[0]} {label}')
+
+    section7=sections.get(7)
+    if section7:
+        offsets=_line_offsets(doc.lines)
+        body_start,body_end=offsets[section7.body_line],offsets[section7.end]
+        body=text[body_start:body_end]
+        actual_paths=set()
+        for row in tests:
+            for match in re.finditer(r'(?<![A-Za-z0-9_./-])evidence/[A-Za-z0-9_./-]*[A-Za-z0-9_/-]',str(row.get('evidence',''))):
+                locator=match[0]
+                try:
+                    path=inside(turn,locator,must_exist=True)
+                    if path.is_file() and path.is_relative_to((turn/'evidence').resolve()):
+                        if snapshot_evidence(path,locator):actual_paths.add(locator)
+                except (ValueError,OSError):pass
+        for locator in actual_paths:
+            pattern=re.compile(r'(?<![A-Za-z0-9_./-])'+re.escape(locator)+r'(?![A-Za-z0-9_./-])')
+            spans.extend((body_start+match.start(),body_start+match.end()) for match in pattern.finditer(body))
+    if not unchanged(root,context.get('source_hashes',{})):
+        return text,errors+['当前 Turn 请求或清单／验收来源在检查期间发生变化']
+    for rel,expected_sha in evidence_snapshots.items():
+        try:
+            if __import__('hashlib').sha256(inside(root,rel,must_exist=True).read_bytes()).hexdigest()!=expected_sha:
+                return text,errors+['当前 TEST 引用的证据在检查期间发生变化：'+rel]
+        except (OSError,ValueError):
+            return text,errors+['当前 TEST 引用的证据在检查期间无法重新读取：'+rel]
+    return _blank_spans(text,spans),errors
+
+
+def _verified_registry_alias_tokens(text: str, entries: list[dict], review: dict | None,
+                                    turn_context: Path | None) -> tuple[dict[str,set[str]],set[str]]:
+    """Bind only Latin fragments in registered local-alias titles to current source evidence."""
+    verified={};candidate_titles=set();evidence_snapshots={}
+    if turn_context is None or not isinstance(review,dict):return verified,candidate_titles
+    try:
+        from report14.bindings import unchanged
+        from repair_io import inside,digest as byte_digest
+        root,turn,context=_current_turn_sources(turn_context)
+        registry_rel='.agent-project-control/reporting/quality/term-registry.json'
+        registry_path=inside(root,registry_rel,must_exist=True)
+        registry_bytes=registry_path.read_bytes();registry=json.loads(registry_bytes.decode('utf-8-sig'))
+        if registry.get('schema')!='apcf.term-registry/1' or not isinstance(registry.get('entries'),dict):return verified,candidate_titles
+        source_entries=registry['entries']
+        review_rows=[row for row in [*review.get('items',[]),*review.get('manual_terms',[])]
+                     if isinstance(row,dict) and isinstance(row.get('term'),str)]
+        for row in review_rows:
+            term=row['term'];source=source_entries.get(term)
+            meanings=row.get('meanings',[])
+            if not isinstance(meanings,list):continue
+            for meaning in meanings:
+                if not isinstance(meaning,dict):continue
+                title=meaning.get('display_name')
+                if (not isinstance(title,str) or meaning.get('term_kind')!='internal_identifier'
+                        or meaning.get('name_status')!='UNVERIFIED'):
+                    continue
+                candidate_titles.add(title)
+                if (not isinstance(source,dict) or source.get('formal_acronym_expansion') is not False
+                        or source.get('status') not in {'VERIFIED','USER_CONFIRMED'}):
+                    continue
+                expected_title=term+' '+str(source.get('chinese',''))
+                if (title!=expected_title or not source.get('chinese') or not source.get('english')
+                        or meaning.get('decision')!='EXPLAINED'
+                        or meaning.get('chinese_name')!=source.get('chinese')
+                        or meaning.get('verified_full_name') not in ('',None)):
+                    continue
+                evidence=meaning.get('source_evidence')
+                if not isinstance(evidence,dict):continue
+                evidence_path=inside(turn,evidence.get('path',''),must_exist=True)
+                if not evidence_path.is_relative_to((turn/'evidence').resolve()):continue
+                evidence_raw=evidence_path.read_bytes()
+                if evidence.get('sha256')!=byte_digest(evidence_raw):continue
+                evidence_snapshots[evidence_path.relative_to(root).as_posix()]=byte_digest(evidence_raw)
+                excerpt=evidence.get('excerpt')
+                if not isinstance(excerpt,str) or not excerpt.strip():continue
+                try:wrapper=json.loads(evidence_raw.decode('utf-8-sig'))
+                except (ValueError,UnicodeError):wrapper={}
+                current_sha=byte_digest(registry_bytes)
+                quoted_entries=wrapper.get('entries',{}) if isinstance(wrapper,dict) else {}
+                refs=source.get('sources',[])
+                valid_excerpts={source.get('english'),source.get('chinese')}
+                valid_excerpts.update(ref.get('source_excerpt') for ref in refs if isinstance(ref,dict))
+                source_bound=(isinstance(wrapper,dict) and wrapper.get('schema')==1
+                              and wrapper.get('registry_path')==registry_rel
+                              and wrapper.get('registry_sha256')==current_sha
+                              and isinstance(quoted_entries,dict) and quoted_entries.get(term)==source
+                              and excerpt in valid_excerpts)
+                if not source_bound:continue
+                from terminology_review import _visible_review_errors
+                scoped_row={'term':term,'meanings':[meaning]}
+                scoped={'review_method':review.get('review_method'),'items':[scoped_row],'manual_terms':[]}
+                if _visible_review_errors(text,scoped,turn):continue
+                english_tokens={match.group().casefold() for match in LATIN.finditer(str(source.get('english','')))}
+                title_tokens={match.group() for match in LATIN.finditer(str(source.get('chinese','')))
+                              if match.group().casefold() in english_tokens}
+                if title_tokens:verified.setdefault(title,set()).update(title_tokens)
+        if not unchanged(root,context.get('source_hashes',{})):
+            return {},candidate_titles
+        if byte_digest(registry_path.read_bytes())!=byte_digest(registry_bytes):return {},candidate_titles
+        for rel,expected_sha in evidence_snapshots.items():
+            if byte_digest(inside(root,rel,must_exist=True).read_bytes())!=expected_sha:return {},candidate_titles
+        return verified,candidate_titles
+    except (OSError,UnicodeError,ValueError,TypeError,KeyError):
+        return {},candidate_titles
+
+
+def content_errors(text: str, review: dict | None = None, *, turn_context: Path | None = None) -> list[str]:
     """Mechanical named checks plus exact review excerpts; never semantic certification."""
-    text=normalize(text);entries,errors=glossary(text)
+    text=normalize(text);original_text=text;entries,errors=glossary(text)
     if review is None:
         return errors
     if not isinstance(review,dict):return errors+['术语复核记录必须是对象']
+    if turn_context is not None:
+        text,source_errors=_source_bound_view(text,turn_context)
+        errors.extend(source_errors)
     aliases=[];covered_titles=set();restricted_exemptions=[]
     for group in [*review.get('items',[]),*review.get('manual_terms',[])]:
         if not isinstance(group,dict):errors.append('无效术语复核条目');continue
@@ -201,8 +514,9 @@ def content_errors(text: str, review: dict | None = None) -> list[str]:
             if status=='NOT_APPLICABLE' and kind=='abbreviation':errors.append(term+'：不确定全称不能冒充不适用')
             for key in ('definition','context_relevance','analogy'):
                 val=meaning.get(key)
+                if key=='analogy' and is14(text) and not val and meaning.get('analogy_not_applicable_reason'):continue
                 if not _nonempty(val) or val not in body:errors.append(term+'：'+key+' 必须是可见定义的真实片段，不能只在 JSON 中补写')
-            if not _nonempty(meaning.get('analogy_basis')):errors.append(term+'：类比对应什么及其边界需要具体复核，不以出现“像”字代替判断')
+            if not _nonempty(meaning.get('analogy_basis')) and not (is14(text) and meaning.get('analogy_not_applicable_reason')):errors.append(term+'：类比对应什么及其边界需要具体复核，不以出现“像”字代替判断')
             if meaning.get('definition')==meaning.get('context_relevance'):errors.append(term+'：含义与本轮作用不能用同一占位串冒充')
             if not (term in title or full and term in full):errors.append(term+'：当前标题没有实际标识该术语')
             aliases.append((term,title))
@@ -211,13 +525,15 @@ def content_errors(text: str, review: dict | None = None) -> list[str]:
         if entry['title'] not in covered_titles:errors.append(entry['title']+'：真实可见术语未被逐项复核')
     # First explanatory use, not compact machine status fields, determines name expansion.
     matches=list(TOP.finditer(text));filtered=text
-    if matches and matches[0][1]=='0':
+    if matches and matches[0][1]==('1' if is14(text) else '0'):
         end=matches[1].start() if len(matches)>1 else len(text);filtered='\n'*text[:end].count('\n')+text[end:]
     filtered=prose_without_protected(filtered)
     for term in restricted_exemptions:
         if re.search(r'(?<![A-Za-z0-9_])'+re.escape(term)+r'(?![A-Za-z0-9_])',filtered):
             errors.append(term+'：词条仍出现在实际说明性正文中，不能声明仅为受保护原文或不在范围内')
     covered=[]
+    verified_alias_tokens,registry_alias_titles=_verified_registry_alias_tokens(
+        original_text,entries,review,turn_context)
     for term,title in aliases:
         if not re.search(r'[A-Za-z]',term):continue
         pattern=r'(?<![A-Za-z0-9_])'+re.escape(term)+r'(?![A-Za-z0-9_])'
@@ -228,7 +544,14 @@ def content_errors(text: str, review: dict | None = None) -> list[str]:
                 errors.append(term+'：首次说明性出现没有使用已核实的完整名称结构，远处词表不能弥补')
         for m in uses:covered.append((m.start(),m.end()))
         if title:
-            for m in re.finditer(re.escape(title.replace('`','')),filtered):covered.append((m.start(),m.end()))
+            visible_title=title.replace('`','')
+            for m in re.finditer(re.escape(visible_title),filtered):
+                if title in registry_alias_titles:
+                    authorized={token.casefold() for token in verified_alias_tokens.get(title,set())}
+                    for token in LATIN.finditer(visible_title):
+                        if token.group().casefold() in authorized:
+                            covered.append((m.start()+token.start(),m.start()+token.end()))
+                else:covered.append((m.start(),m.end()))
     for m in LATIN.finditer(filtered):
         if not any(a<=m.start() and m.end()<=b for a,b in covered):
             errors.append(f'未复核的英文或缩写 {m[0]}：应解释、使用中文，或以实际依据说明保护范围')
@@ -321,10 +644,10 @@ def report_errors(report:str,turn:Path) -> list[str]:
         target=(Path(turn).resolve()/'TURN.md').relative_to(ROOT.resolve()).as_posix()
         errors=context_errors(turn,target)
         p=Path(turn)/'evidence/terms-review.json'
-        if not p.is_file():return errors+content_errors(report)+['当前 terms-review.json 不存在，不能宣称术语审核通过']
+        if not p.is_file():return errors+content_errors(report,turn_context=turn)+['当前 terms-review.json 不存在，不能宣称术语审核通过']
         review=json.loads(p.read_text(encoding='utf-8'))
         # Existing validator checks all source evidence, SHA and observations.
-        errors+=content_errors(report,review)
+        errors+=content_errors(report,review,turn_context=turn)
         return errors
     except (OSError,ValueError,KeyError,TypeError) as exc:return ['写作门禁拒绝：'+str(exc)]
 
@@ -366,5 +689,10 @@ def main()->int:
             print('VIEW_ONLY: not a Gate or publication authorization')
     except (OSError,ValueError,KeyError,TypeError) as exc:print('BLOCKED: '+str(exc));return 2
     return 0
+
+
+# APCF-REPORT14-ADAPTER v1
+from report14.bridge import install as _install_report14
+_install_report14('writing_guard', globals())
 
 if __name__=='__main__':raise SystemExit(main())

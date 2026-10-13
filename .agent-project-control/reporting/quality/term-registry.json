@@ -1,0 +1,547 @@
+{
+  "schema": "apcf.term-registry/1",
+  "entries": {
+    "IT": {
+      "english": "Iteration",
+      "chinese": "迭代",
+      "kind": "framework_term",
+      "status": "USER_CONFIRMED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/runtime/tmp/report-quality-v2-20261011/package/shared/contracts/TERMS.json",
+          "source_sha256": "cb3a04de0b5ef5aa715678c1bab3ae356fb3a223301a6dbfa73fea53c861b595",
+          "source_excerpt": "    \"IT\": {\"english\": \"Iteration\", \"chinese\": \"迭代\", \"source\": \"explicit user correction in current request\"},",
+          "source_line": 5,
+          "provenance": "user_confirmed"
+        },
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "TERMS={'IT':{'english':'Iteration','chinese':'迭代','source':'user-confirmed'},",
+          "source_line": 26
+        },
+        {
+          "source_path": "AGENTS.md",
+          "source_sha256": "d06e0d57fdab13ed506a7f1ed197fafd84531ace3352a914461ac48d964ef96a",
+          "source_excerpt": "- **IT**：承载一个稳定 Objective 的迭代目标单元",
+          "source_line": 14
+        }
+      ],
+      "formal_acronym_expansion": true
+    },
+    "EV": {
+      "english": "Evidence",
+      "chinese": "证据",
+      "kind": "evidence_term",
+      "status": "USER_CONFIRMED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/runtime/tmp/report-quality-v2-20261011/package/shared/contracts/TERMS.json",
+          "source_sha256": "cb3a04de0b5ef5aa715678c1bab3ae356fb3a223301a6dbfa73fea53c861b595",
+          "source_excerpt": "    \"EV\": {\"english\": \"Evidence\", \"chinese\": \"证据\", \"source\": \"explicit user correction in current request\"}",
+          "source_line": 6,
+          "provenance": "user_confirmed"
+        },
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "       'EV':{'english':'Evidence','chinese':'证据','source':'user-confirmed'}}",
+          "source_line": 27
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "          \"title\": \"关键证据\",",
+          "source_line": 115
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"prefix\": \"EV\",",
+          "source_line": 270
+        }
+      ],
+      "formal_acronym_expansion": true
+    },
+    "APCF": {
+      "english": "Agent Project Control Framework",
+      "chinese": "智能体项目控制框架",
+      "kind": "framework_name",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/framework.yaml",
+          "source_sha256": "bcdc85a7a863600014ed4510e06d99bb963dec6ebe8c0f86007114c05f5e859c",
+          "source_excerpt": "framework_name: \"Agent Project Control Framework\"",
+          "source_line": 3
+        },
+        {
+          "source_path": "AGENTS.md",
+          "source_sha256": "d06e0d57fdab13ed506a7f1ed197fafd84531ace3352a914461ac48d964ef96a",
+          "source_excerpt": "# 1. Agent Project Control Framework 智能体（Agent）入口",
+          "source_line": 2
+        }
+      ],
+      "formal_acronym_expansion": true
+    },
+    "AEMP": {
+      "english": "AIALRA Agentic Engineering Management Plane",
+      "chinese": "AIALRA 智能体工程管理平面",
+      "kind": "project_name",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": "../AIALRA-AEMP/project-atlas-production-hotfix/README.md",
+          "source_sha256": "f0dd34cf59fe4e482cedc9260142d4c6d13844333fa4f04d65ad6c8c5ece2057",
+          "source_excerpt": "AIALRA 智能体工程管理平面（Agentic Engineering Management Plane，AEMP）是现有 `codex-workflow-control-plane` 的观察、项目索引、解释和批注层",
+          "source_line": 15
+        },
+        {
+          "source_path": "../AIALRA-AEMP/project-atlas-production-hotfix/README.en.md",
+          "source_sha256": "774a909b34bab7529ba9a527eec7e79a90a2948229d689d486db1934d4120393",
+          "source_excerpt": "AIALRA Agentic Engineering Management Plane, or AEMP, is the observation, project indexing, explanation, and annotation layer connected to the existing `codex-workflow-control-plane`",
+          "source_line": 15
+        },
+        {
+          "source_path": "../AIALRA-AEMP/project-atlas-production-hotfix/.atlas/manifest.yaml",
+          "source_sha256": "e093000f767d56553b841330e051490504e6ba95396a778416c558d8453d26fc",
+          "source_excerpt": "name: AIALRA Agentic Engineering Management Plane",
+          "source_line": 3
+        }
+      ],
+      "formal_acronym_expansion": true
+    },
+    "TR": {
+      "english": "independent execution record for one user Turn",
+      "chinese": "一次用户 Turn 的独立执行记录",
+      "kind": "framework_object",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": "AGENTS.md",
+          "source_sha256": "d06e0d57fdab13ed506a7f1ed197fafd84531ace3352a914461ac48d964ef96a",
+          "source_excerpt": "- **TR**：一次用户 Turn 的独立执行记录；至少关联 `REQUEST.md`、`CHECKLIST.md`、`TEST.md`、`TURN.md` 和 `evidence/`",
+          "source_line": 15
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "CL": {
+      "english": "execution checklist item identifier",
+      "chinese": "执行清单项标识",
+      "kind": "local_identifier",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "PREFIX={4:'CL',5:'MOD',6:'TEST',7:'EV',8:'RES',9:'LIM',12:'UA',13:'Q',14:'NEXT'}",
+          "source_line": 19
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "          \"title\": \"执行清单\",",
+          "source_line": 83
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"prefix\": \"CL\",",
+          "source_line": 181
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "MOD": {
+      "english": "file modification record identifier",
+      "chinese": "文件修改记录标识",
+      "kind": "local_identifier",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "PREFIX={4:'CL',5:'MOD',6:'TEST',7:'EV',8:'RES',9:'LIM',12:'UA',13:'Q',14:'NEXT'}",
+          "source_line": 19
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "          \"title\": \"文件修改\",",
+          "source_line": 94
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"prefix\": \"MOD\",",
+          "source_line": 214
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "TEST": {
+      "english": "acceptance test record identifier",
+      "chinese": "验收记录标识",
+      "kind": "local_identifier",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "PREFIX={4:'CL',5:'MOD',6:'TEST',7:'EV',8:'RES',9:'LIM',12:'UA',13:'Q',14:'NEXT'}",
+          "source_line": 19
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "          \"title\": \"验收摘要\",",
+          "source_line": 104
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"prefix\": \"TEST\",",
+          "source_line": 236
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "RES": {
+      "english": "result state record identifier",
+      "chinese": "结果状态记录标识",
+      "kind": "local_identifier",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "PREFIX={4:'CL',5:'MOD',6:'TEST',7:'EV',8:'RES',9:'LIM',12:'UA',13:'Q',14:'NEXT'}",
+          "source_line": 19
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "          \"title\": \"结果状态\",",
+          "source_line": 125
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"prefix\": \"RES\",",
+          "source_line": 292
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "LIM": {
+      "english": "remaining limitation record identifier",
+      "chinese": "剩余限制记录标识",
+      "kind": "local_identifier",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "PREFIX={4:'CL',5:'MOD',6:'TEST',7:'EV',8:'RES',9:'LIM',12:'UA',13:'Q',14:'NEXT'}",
+          "source_line": 19
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "          \"title\": \"剩余限制\",",
+          "source_line": 136
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"prefix\": \"LIM\",",
+          "source_line": 313
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "UA": {
+      "english": "user action record identifier",
+      "chinese": "用户行动记录标识",
+      "kind": "local_identifier",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "PREFIX={4:'CL',5:'MOD',6:'TEST',7:'EV',8:'RES',9:'LIM',12:'UA',13:'Q',14:'NEXT'}",
+          "source_line": 19
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"title\": \"用户需要执行\",",
+          "source_line": 342
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"prefix\": \"UA\",",
+          "source_line": 345
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "Q": {
+      "english": "discussion search or decision record identifier",
+      "chinese": "讨论、搜索或决策事项标识",
+      "kind": "local_identifier",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "PREFIX={4:'CL',5:'MOD',6:'TEST',7:'EV',8:'RES',9:'LIM',12:'UA',13:'Q',14:'NEXT'}",
+          "source_line": 19
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"title\": \"需要继续讨论、搜索或决策\",",
+          "source_line": 368
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"prefix\": \"Q\",",
+          "source_line": 371
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "NEXT": {
+      "english": "next step recommendation identifier",
+      "chinese": "下一步推荐标识",
+      "kind": "local_identifier",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/contract.py",
+          "source_sha256": "7e65ec25e3b15ec4419ce618c5e6ac36096695502530a6aa552f1e38e52a8022",
+          "source_excerpt": "PREFIX={4:'CL',5:'MOD',6:'TEST',7:'EV',8:'RES',9:'LIM',12:'UA',13:'Q',14:'NEXT'}",
+          "source_line": 19
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"title\": \"下一步推荐\",",
+          "source_line": 397
+        },
+        {
+          "source_path": ".agent-project-control/reporting/contract.json",
+          "source_sha256": "fc4d7fe623685b3b6440da4d6d7bcc7fe7152ba58630fd9918e85b7b1a860fb1",
+          "source_excerpt": "      \"prefix\": \"NEXT\",",
+          "source_line": 400
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "PA": {
+      "english": "one level parallel execution unit under the current TR",
+      "chinese": "当前 TR 下的一层并行执行单元",
+      "kind": "framework_object",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": "AGENTS.md",
+          "source_sha256": "d06e0d57fdab13ed506a7f1ed197fafd84531ace3352a914461ac48d964ef96a",
+          "source_excerpt": "- **PA**：当前 TR 下的一层并行执行单元；不能继续创建子 PA",
+          "source_line": 16
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "JSON": {
+      "english": "JavaScript Object Notation",
+      "chinese": "JavaScript 对象表示法",
+      "kind": "data_format",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_url": "https://www.rfc-editor.org/info/rfc8259",
+          "source_excerpt": "The JavaScript Object Notation (JSON) Data Interchange Format",
+          "source_location": "RFC 8259 title; Abstract",
+          "accessed_at": "2026-10-12T01:30:45Z"
+        }
+      ],
+      "formal_acronym_expansion": true
+    },
+    "SHA-256": {
+      "english": "Secure Hash Algorithm, 256-bit",
+      "chinese": "安全散列算法 256 位",
+      "kind": "digest_algorithm",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_url": "https://csrc.nist.gov/files/pubs/fips/180-4/final/docs/fips180-4.pdf",
+          "source_excerpt": "SHA Secure Hash Algorithm.",
+          "source_location": "FIPS 180-4 §2.1, printed p. 4",
+          "accessed_at": "2026-10-12T01:30:45Z"
+        },
+        {
+          "source_url": "https://csrc.nist.gov/files/pubs/fips/180-4/final/docs/fips180-4.pdf",
+          "source_excerpt": "The final result of SHA-256 is a 256-bit message digest.",
+          "source_location": "FIPS 180-4 §6.2, printed p. 21",
+          "accessed_at": "2026-10-12T01:30:45Z"
+        }
+      ],
+      "formal_acronym_expansion": true
+    },
+    "CLI": {
+      "english": "Command-Line Interface",
+      "chinese": "命令行界面",
+      "kind": "interface_type",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_url": "https://learn.microsoft.com/en-us/cli/azure/what-is-azure-cli",
+          "source_excerpt": "The Azure Command-Line Interface (CLI) is a cross-platform command-line tool",
+          "source_location": "Microsoft Learn, opening paragraph",
+          "accessed_at": "2026-10-12T01:30:45Z"
+        }
+      ],
+      "formal_acronym_expansion": true
+    },
+    "Core": {
+      "english": "Core package component",
+      "chinese": "Core 核心包组件",
+      "kind": "package_component",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/interfaces/APCF_ONBOARDING.md",
+          "source_sha256": "73e2aed23b563fdcf701edde6fd0ab46d90e1b45f983b488aad1561eecfd1953",
+          "source_excerpt": "从验证过的 Core 通过 bootstrap.py 安装；初始化 PROJECT、ARCHITECTURE 和项目 DESIGN 的实际事实，初始化 Writing/Style 接口及技能锁；可选技能缺席不是已安装，显式需要时才按锁取得并验证；默认不改原有前端 UI，不自动采用任何 Workbench/Atlas Profile",
+          "source_line": 16
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "Gate": {
+      "english": "delivery gate",
+      "chinese": "交付门禁",
+      "kind": "workflow_concept",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/reporting/APPROVED-REFERENCE.md",
+          "source_sha256": "4b65d8572619e10a5c5a64946156d2e099e2011f94791815ef2220824a6dd179",
+          "source_excerpt": "- 交付门禁（Gate）：在正式交付或宣布任务完成之前，依据既定验收标准检查成果、测试结果和必要证据是否满足要求的机制；例如，一座展览场馆在开放前完成 12 项消防与疏散检查，必要记录齐全且不存在不符合开放条件的未解决事项，门禁才允许进入正式开放程序；它类似产品出厂前的检验关卡，负责判断是否具备交付资格，而不是代替开发、测试或归档本身",
+          "source_line": 195
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "CURRENT": {
+      "english": "current state view file",
+      "chinese": "当前状态视图文件",
+      "kind": "machine_file",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/rules/06-framework-contract.md",
+          "source_sha256": "6f638fafa247f7fa2e67222e1daea99ad2bed72762d6070c23a03688cfe4e516",
+          "source_excerpt": "- `CURRENT.md` 是当前视图，不重新维护一份独立历史；它必须从当前权威状态派生或引用",
+          "source_line": 422
+        },
+        {
+          "source_path": "AGENTS.md",
+          "source_sha256": "d06e0d57fdab13ed506a7f1ed197fafd84531ace3352a914461ac48d964ef96a",
+          "source_excerpt": "| 当前状态与最近完成报告 | `CURRENT.md` |",
+          "source_line": 50
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "Windows": {
+      "english": "Windows",
+      "chinese": "Windows 操作系统",
+      "kind": "proper_name",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/iterations/IT-0020_20261011T171927-0700_report-quality-v2/turns/TR-0025_20261011T171928-0700_report-quality-v2-candidate1/TEST.md",
+          "source_sha256": "f4297f4e903e6dcaa72a1efd57f8c7b304dcae4bbc80878b0022a08b10305185",
+          "source_excerpt": "Windows",
+          "source_line": 6
+        },
+        {
+          "source_url": "https://www.microsoft.com/en-us/windows",
+          "source_excerpt": "What is Microsoft Windows?",
+          "source_location": "Microsoft Windows homepage",
+          "accessed_at": "2026-10-12T02:10:45Z"
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "Python": {
+      "english": "Python",
+      "chinese": "Python 编程语言",
+      "kind": "proper_name",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/iterations/IT-0020_20261011T171927-0700_report-quality-v2/turns/TR-0025_20261011T171928-0700_report-quality-v2-candidate1/parallel/PA-0030_20261011T172833-0700_v2-package-tests/TEST.md",
+          "source_sha256": "a1ade2f9b3604d54d8d42d5eb3d3ce7e4eb9dfca9d69e078aa88d0de592755b9",
+          "source_excerpt": "Python",
+          "source_line": 24
+        },
+        {
+          "source_url": "https://www.python.org/",
+          "source_excerpt": "Python is a programming language",
+          "source_location": "Python.org homepage, opening description",
+          "accessed_at": "2026-10-12T02:10:45Z"
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "Node.js": {
+      "english": "Node.js",
+      "chinese": "Node.js JavaScript 运行时",
+      "kind": "proper_name",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/report_bridge/transport.py",
+          "source_sha256": "b71cfcefb45ecc9950a75688d9cd7f6032d844810ada0b7a654a085e32f887aa",
+          "source_excerpt": "\"node\", \"--input-type=module\"",
+          "source_line": 106
+        },
+        {
+          "source_url": "https://nodejs.org/en/about",
+          "source_excerpt": "As an asynchronous event-driven JavaScript runtime, Node.js is designed to build scalable network applications.",
+          "source_location": "Node.js About page, opening paragraph",
+          "accessed_at": "2026-10-12T02:10:45Z"
+        }
+      ],
+      "formal_acronym_expansion": false
+    },
+    "Codex": {
+      "english": "Codex",
+      "chinese": "OpenAI Codex 编程代理",
+      "kind": "proper_name",
+      "status": "VERIFIED",
+      "sources": [
+        {
+          "source_path": ".agent-project-control/scripts/selfcheck.py",
+          "source_sha256": "6e0032277cb2580d0a53abcd6f4735a5127a25c12b0d5e7842218f571e48ae17",
+          "source_excerpt": "Codex: reviewer",
+          "source_line": 88
+        },
+        {
+          "source_url": "https://help.openai.com/en/collections/14937394-codex",
+          "source_excerpt": "Codex, our AI coding agent",
+          "source_location": "OpenAI Help Center, Codex collection description",
+          "accessed_at": "2026-10-12T02:10:45Z"
+        }
+      ],
+      "formal_acronym_expansion": false
+    }
+  }
+}

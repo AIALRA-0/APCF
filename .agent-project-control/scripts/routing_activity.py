@@ -747,7 +747,8 @@ def _controlled_finalization_review(turn_dir: Path, target: str, row: dict) -> b
         current_text = current.read_text(encoding='utf-8')
         source = re.search(r'^- \*\*Source TURN\*\*：`([^`]+)`', current_text, re.MULTILINE)
         turn_report = payload.decode('utf-8').split('## 1.1. USER REPORT', 1)[1].strip()
-        current_report = current_text.split('## 1.1. 最新完整用户报告', 1)[1].strip()
+        from report14.bindings import report_text
+        current_report = report_text(current_text).strip()
         digest = normalized_turn_sha256(payload)
         return (journal.get('schema') == 1 and journal.get('turn') == posix_rel(turn_dir)
                 and journal.get('result') == 'COMMITTED' and gate.get('result') == 'PASS'
@@ -759,7 +760,7 @@ def _controlled_finalization_review(turn_dir: Path, target: str, row: dict) -> b
                 and before['normalized_turn_sha256'] == after['normalized_turn_sha256'] == row.get('normalized_turn_sha256') == digest
                 and before['report_sha256'] == after['report_sha256'] == hashlib.sha256(turn_report.encode('utf-8')).hexdigest()
                 and source is not None and source.group(1) == posix_rel(turn_dir)
-                and turn_report == current_report)
+                and __import__("report14.contract", fromlist=["normalize"]).normalize(turn_report) == __import__("report14.contract", fromlist=["normalize"]).normalize(current_report))
     except (OSError, UnicodeError, ValueError, KeyError, TypeError, ActivityError, Exception):
         return False
 

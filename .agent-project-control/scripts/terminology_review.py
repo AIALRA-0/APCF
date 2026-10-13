@@ -8,6 +8,7 @@ known to the reader, or exempt, and it does not judge whether a cited expansion 
 from __future__ import annotations
 
 import argparse
+from report14.bindings import is14
 from datetime import datetime
 import hashlib
 import json
@@ -141,7 +142,7 @@ def candidates(report_text: str) -> list[dict]:
             " ",
             source_line,
         )
-        line = re.sub(r"(?<![A-Za-z0-9_])(?:IT|TR|PA|CL|TEST|REG|MAT|ADR|RB|FT)-[0-9A-Za-z_-]+", " ", line)
+        line = re.sub(r"(?<![A-Za-z0-9_])(?:IT|TR|PA|CL|MOD|TEST|EV|RES|LIM|UA|Q|NEXT|REG|MAT|ADR|RB|FT)-[0-9A-Za-z_-]+", " ", line)
         line = re.sub(r"(?<![A-Za-z0-9_])R\d{2}(?![A-Za-z0-9_])", " ", line)
         line = re.sub(r"(?i)(?<![A-Za-z0-9_])v\d+(?:\.\d+)*(?![A-Za-z0-9_])", " ", line)
         for match in TOKEN_RE.finditer(line):
@@ -247,7 +248,8 @@ def _glossary_matches(term: str, rows: list[str]) -> int:
     return sum(_term_matches_line(term, row) for row in rows)
 
 
-def _validate_meaning(report: str, term: str, meaning: object, label: str) -> list[str]:
+def _validate_meaning(report: str, term: str, meaning: object, label: str, *,
+                      allow_single_word_verified: bool = False) -> list[str]:
     issues: list[str] = []
     if not isinstance(meaning, dict):
         return [label + ": invalid meaning group"]
@@ -275,7 +277,14 @@ def _validate_meaning(report: str, term: str, meaning: object, label: str) -> li
             issues.append(label + ": current relevance is missing")
         if name_status == "VERIFIED":
             normalized = str(full_name).strip()
-            if _is_placeholder(normalized) or (len(normalized.split()) < 2 and meaning.get('term_kind') != 'proper_name'):
+            term_kind = meaning.get("term_kind")
+            if term_kind == "abbreviation":
+                from report_bridge.contract import normalized as normalize_term_name
+                if normalize_term_name(term) == normalize_term_name(normalized):
+                    issues.append(label + ": abbreviation cannot use itself as its verified full name")
+            allow_single_word = allow_single_word_verified and term_kind == "abbreviation"
+            if (_is_placeholder(normalized)
+                    or (len(normalized.split()) < 2 and term_kind != "proper_name" and not allow_single_word)):
                 issues.append(label + ": verified full name is a placeholder or incomplete phrase")
         elif name_status == "UNVERIFIED":
             if str(full_name).strip():
@@ -309,7 +318,7 @@ def validate(report_text: str, review: dict, *, turn_dir=None) -> list[str]:
         issues.extend(_visible_review_errors(report, review, turn_dir))
     from writing_guard import enabled as writing_enabled, content_errors as writing_errors
     if turn_dir is not None and writing_enabled(Path(turn_dir)):
-        issues.extend(writing_errors(report, review))
+        issues.extend(writing_errors(report, review, turn_context=Path(turn_dir)))
     if review.get("report_sha256") != sha256_text(report):
         issues.append("review was prepared for a different final USER REPORT SHA")
     if review.get("semantic_review_completed") is not True:
@@ -332,14 +341,15 @@ def validate(report_text: str, review: dict, *, turn_dir=None) -> list[str]:
     for field in ("items", "manual_terms"):
         if not isinstance(review.get(field), list):
             return issues + [field + " must be an array"]
+    allow_single_word_verified = review.get("schema") == SCHEMA
     item_rows = review["items"]
     manual_rows = review["manual_terms"]
     observed_terms: set[str] = set()
     all_lines = report.splitlines()
     _, sections = report_sections(report)
     glossary_line_numbers = set()
-    if 2 in sections:
-        _, _, start, end = sections[2]
+    if (3 if is14(report) else 2) in sections:
+        _, _, start, end = sections[3 if is14(report) else 2]
         glossary_line_numbers = set(range(report[:start].count("\n") + 1, report[:end].count("\n") + 2))
 
     required_items = set(candidates_by_term)
@@ -363,7 +373,8 @@ def validate(report_text: str, review: dict, *, turn_dir=None) -> list[str]:
             listed = row.get("line_numbers")
             if not isinstance(listed, list) or set(listed) != expected_lines:
                 issues.append(label + ": occurrence lines differ from the current scan: " + term)
-        issues.extend(_validate_term_uses(report, term, row, expected_lines, label))
+        issues.extend(_validate_term_uses(report, term, row, expected_lines, label,
+                                          allow_single_word_verified=allow_single_word_verified))
     for missing in sorted(required_items - seen_items):
         issues.append("unreviewed abbreviation candidate: " + missing)
 
@@ -391,7 +402,8 @@ def validate(report_text: str, review: dict, *, turn_dir=None) -> list[str]:
                             if n not in glossary_line_numbers and _term_matches_line(term, line)}
             if expected_lines != actual_lines:
                 issues.append(label + ": manual term occurrence coverage is incomplete: " + term)
-        issues.extend(_validate_term_uses(report, term, row, expected_lines, label))
+        issues.extend(_validate_term_uses(report, term, row, expected_lines, label,
+                                          allow_single_word_verified=allow_single_word_verified))
     if item_rows and seen_items != required_items:
         # Missing rows are also reported individually above; this makes extra stale rows explicit.
         for extra in sorted(seen_items - required_items):
@@ -399,7 +411,8 @@ def validate(report_text: str, review: dict, *, turn_dir=None) -> list[str]:
     return issues
 
 
-def _validate_term_uses(report: str, term: str, row: dict, expected_lines: set[int], label: str) -> list[str]:
+def _validate_term_uses(report: str, term: str, row: dict, expected_lines: set[int], label: str, *,
+                        allow_single_word_verified: bool = False) -> list[str]:
     issues: list[str] = []
     meanings = row.get("meanings")
     if not isinstance(meanings, list) or not meanings:
@@ -430,7 +443,8 @@ def _validate_term_uses(report: str, term: str, row: dict, expected_lines: set[i
             if meaning_id in meaning_ids:
                 issues.append(meaning_label + ": duplicate meaning_id")
             meaning_ids.add(meaning_id)
-        issues.extend(_validate_meaning(report, term, meaning, meaning_label))
+        issues.extend(_validate_meaning(report, term, meaning, meaning_label,
+                                        allow_single_word_verified=allow_single_word_verified))
         if meaning.get("decision") == "EXPLAINED":
             explained += 1
     if assigned != expected_lines:
@@ -580,6 +594,11 @@ def _visible_review_errors(report: str, review: dict, turn_dir=None) -> list[str
             except (ValueError, OSError, KeyError, TypeError) as exc:
                 issues.append(label+': '+str(exc))
     return issues
+
+
+# APCF-REPORT14-ADAPTER v1
+from report14.bridge import install as _install_report14
+_install_report14('terminology_review', globals())
 
 if __name__ == "__main__":
     raise SystemExit(main())

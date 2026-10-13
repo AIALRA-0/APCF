@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import fnmatch
 import json
 import re
@@ -118,6 +119,269 @@ def _markdown_prose(text: str) -> list[tuple[int, str]]:
     return result
 
 
+def _private_json_evidence(root: Path, relative: str) -> dict:
+    """Read one byte-bound private JSON artifact without trusting its path/sidecar."""
+    from repair_io import inside
+    path = inside(root, relative, must_exist=True)
+    sidecar = inside(root, relative + '.apcf-meta.yaml', must_exist=True)
+    payload = path.read_bytes()
+    metadata = sidecar.read_text(encoding='utf-8')
+    expected = hashlib.sha256(payload).hexdigest()
+    if metadata.splitlines() != [
+            '# APCF-META {"schema":1,"visibility":"private"}',
+            'schema: 1', 'visibility: private', 'sha256: ' + expected]:
+        raise ValueError('private JSON evidence metadata does not bind current bytes')
+    value = json.loads(payload.decode('utf-8-sig'))
+    if not isinstance(value, dict):
+        raise ValueError('private JSON evidence must be an object')
+    return value
+
+
+def _request_body_from_source(path: Path, expected_sha256: str) -> str:
+    payload = path.read_bytes()
+    if hashlib.sha256(payload).hexdigest() != expected_sha256:
+        raise ValueError('current REQUEST source digest differs')
+    source = payload.decode('utf-8-sig').replace('\r\n', '\n').replace('\r', '\n')
+    marker = '## My request:'
+    if source.count(marker) > 1:
+        raise ValueError('REQUEST source has ambiguous request marker')
+    return (source.split(marker, 1)[1] if marker in source else source).strip()
+
+
+def _report_request_source_spans(turn_dir: Path, target: str, text: str) -> list[tuple[int, int]]:
+    """Locate only the two request-derived report14 fields after native source checks."""
+    from repair_io import inside
+    from report14.bindings import report_text, published_meta, safe_turn
+    from report14.markdown import fields as markdown_fields, parse as parse_report
+    from report_bridge.contract import digest as report_digest, text_digest
+    from report_bridge.native import sources_unchanged
+    from report_bridge.render import render, verify_artifact
+    from report_bridge.contract import validate as validate_snapshot
+    from routing_activity import load_baseline, load_audit_contract
+
+    root = Path(ROOT).resolve()
+    turn = safe_turn(root, turn_dir)
+    turn_rel = turn.relative_to(root).as_posix()
+    if target == 'CURRENT.md':
+        artifact_path = inside(root, target, must_exist=True)
+    elif target == turn_rel + '/TURN.md':
+        artifact_path = inside(root, target, must_exist=True)
+    else:
+        return []
+    if artifact_path.read_text(encoding='utf-8') != text:
+        return []
+    artifact = text.replace('\r\n', '\n').replace('\r', '\n')
+    body = report_text(artifact)
+    if not body or artifact.count(body.rstrip('\n')) != 1:
+        return []
+
+    current_path = inside(root, 'CURRENT.md', must_exist=True)
+    current_text = current_path.read_text(encoding='utf-8')
+    current_artifact = current_text.replace('\r\n', '\n').replace('\r', '\n')
+    current_body = report_text(current_artifact)
+    if current_body != body or current_artifact.count(current_body.rstrip('\n')) != 1:
+        return []
+    receipt_rel = turn_rel + '/evidence/report-quality-publication.json'
+    receipt = _private_json_evidence(root, receipt_rel)
+    meta = published_meta(current_artifact)
+    if (meta.get('source_turn') != turn_rel or not receipt.get('request_id')
+            or meta.get('request_id') != receipt.get('request_id')
+            or not receipt.get('persisted') or receipt.get('business_finalized') is not False):
+        return []
+    snapshot_rel = receipt.get('snapshot_path')
+    if not isinstance(snapshot_rel, str) or not re.fullmatch(
+            re.escape(turn_rel) + r'/evidence/report-quality-snapshot-r[1-9][0-9]*\.json', snapshot_rel):
+        return []
+    archive = _private_json_evidence(root, snapshot_rel)
+    snapshot = archive.get('snapshot')
+    if not isinstance(snapshot, dict):
+        return []
+    revision = receipt.get('revision')
+    if (type(revision) is not int or revision < 1 or revision != snapshot.get('revision')
+            or snapshot_rel != turn_rel + f'/evidence/report-quality-snapshot-r{revision}.json'
+            or archive.get('receipt') != receipt
+            or receipt.get('identity') != snapshot.get('identity')
+            or receipt.get('source_digest') != snapshot.get('source_digest')
+            or receipt.get('report_digest') != report_digest(snapshot)
+            or receipt.get('markdown_sha256') != text_digest(body)
+            or report_digest(snapshot) != receipt.get('report_digest')):
+        return []
+    identity = snapshot.get('identity', {})
+    if (identity.get('project_id') != root.name
+            or identity.get('iteration_id') != turn.parents[1].name.split('_', 1)[0]
+            or identity.get('turn_id') != turn.name.split('_', 1)[0]):
+        return []
+    if any(issue.severity == 'error' for issue in validate_snapshot(snapshot)):
+        return []
+    verify_artifact(body, snapshot)
+    sources = snapshot.get('native_sources')
+    request_rel = turn_rel + '/REQUEST.md'
+    if not isinstance(sources, dict) or not isinstance(sources.get(request_rel), str):
+        return []
+    baseline = load_baseline(turn, load_audit_contract())
+    request_sha = sources[request_rel]
+    if baseline.get('request_sha256') != request_sha:
+        return []
+    request_path = inside(root, request_rel, must_exist=True)
+    request_text = _request_body_from_source(request_path, request_sha)
+    if not sources_unchanged(root, sources):
+        return []
+
+    expected_fields = {}
+    for group_title, label in (('当前 TR', '用户具体要求'), ('结果状态', '本轮目标')):
+        groups = [row for row in snapshot['sections'][0].get('groups', [])
+                  if row.get('title') == group_title]
+        if len(groups) != 1:
+            return []
+        values = [field.get('text') for field in groups[0].get('fields', [])
+                  if field.get('label') == label]
+        if len(values) != 1 or values[0] != request_text:
+            return []
+        expected_fields[label] = request_text
+
+    parsed = parse_report(body)
+    if not parsed.sections or parsed.sections[0].number != 1:
+        return []
+    rows = markdown_fields(parsed.sections[0].nodes)
+    ranges = []
+    line_starts = [0]
+    for line in parsed.lines:
+        line_starts.append(line_starts[-1] + len(line))
+    for label in expected_fields:
+        matches = [row for row in rows if row.get('name') == label]
+        if len(matches) != 1:
+            return []
+        row = matches[0]
+        start_line, end_line = row['line'], row['end']
+        if not (0 <= start_line < end_line <= len(parsed.lines)):
+            return []
+        first = parsed.lines[start_line].rstrip('\n')
+        match = re.match(r'^\s*[-+*]\s+([^：\n]+)：', first)
+        if match is None or match.group(1).strip() != label:
+            return []
+        ranges.append((line_starts[start_line] + match.end(),
+                       line_starts[start_line] + len(first)))
+        for line_number in range(start_line + 1, end_line):
+            line = parsed.lines[line_number].rstrip('\n')
+            indentation = len(line) - len(line.lstrip(' \t'))
+            if indentation < len(line):
+                ranges.append((line_starts[line_number] + indentation,
+                               line_starts[line_number] + len(line)))
+
+    body_start = artifact.find(body.rstrip('\n'))
+    if body_start < 0:
+        return []
+    return [(body_start + start, body_start + end) for start, end in ranges]
+
+
+def _pa_request_source_spans(turn_dir: Path, target: str, text: str) -> list[tuple[int, int]]:
+    """Bind an immediate PA REQUEST body only to stable private plan preimages."""
+    from repair_io import inside
+    from report14.bindings import safe_turn
+    from routing_activity import load_baseline, load_audit_contract
+
+    root = Path(ROOT).resolve()
+    turn = safe_turn(root, turn_dir)
+    turn_rel = turn.relative_to(root).as_posix()
+    prefix = turn_rel + '/parallel/'
+    if not target.startswith(prefix) or not target.endswith('/REQUEST.md'):
+        return []
+    request_path = inside(root, target, must_exist=True)
+    if (request_path.parent.parent != turn / 'parallel'
+            or not request_path.parent.name.startswith('PA-')
+            or request_path.read_text(encoding='utf-8') != text):
+        return []
+    payload = request_path.read_bytes()
+    source = payload.decode('utf-8-sig').replace('\r\n', '\n').replace('\r', '\n')
+    heading = '# 1. 并行任务原始请求'
+    if (source != text.replace('\r\n', '\n').replace('\r', '\n')
+            or not source.startswith('<!-- APCF-META {"schema":1,"visibility":"private"} -->\n')
+            or source.count(heading) != 1):
+        return []
+    heading_start = source.index(heading)
+    heading_end = source.find('\n', heading_start)
+    if heading_end < 0:
+        return []
+
+    baseline = load_baseline(turn, load_audit_contract())
+    request_sha = baseline.get('request_sha256')
+    if not isinstance(request_sha, str) or not re.fullmatch(r'[0-9a-f]{64}', request_sha):
+        return []
+    revisions = sorted((turn / 'evidence').glob('plan-revision-*.json'))
+    if not revisions or [p.name for p in revisions] != [f'plan-revision-{i:06d}.json'
+                                                         for i in range(1, len(revisions) + 1)]:
+        return []
+    turn_target_sha = hashlib.sha256(payload).hexdigest()
+    earliest = None
+    for sequence, plan_path in enumerate(revisions, 1):
+        plan_rel = plan_path.relative_to(root).as_posix()
+        plan = _private_json_evidence(root, plan_rel)
+        if (plan.get('schema') != 1 or plan.get('turn') != turn_rel
+                or plan.get('request_sha256') != request_sha or plan.get('sequence') != sequence):
+            return []
+        matches = [row for row in plan.get('target_preimages', [])
+                   if isinstance(row, dict) and row.get('path') == target]
+        if len(matches) > 1:
+            return []
+        if matches:
+            row = matches[0]
+            if (row.get('state') != 'file'
+                    or not isinstance(row.get('sha256'), str)
+                    or not re.fullmatch(r'[0-9a-f]{64}', row['sha256'])):
+                return []
+            projected = {'state': row['state'], 'sha256': row['sha256']}
+            if earliest is None:
+                earliest = projected
+            elif projected != earliest:
+                return []
+    workflow = _private_json_evidence(root, turn_rel + '/evidence/workflow.json')
+    if (earliest is None or earliest.get('sha256') != turn_target_sha
+            or workflow.get('schema') != 1 or workflow.get('turn') != turn_rel
+            or workflow.get('request_sha256') != request_sha
+            or workflow.get('sequence') != len(revisions)):
+        return []
+    workflow_rows = [row for row in workflow.get('target_preimages', [])
+                     if isinstance(row, dict) and row.get('path') == target]
+    if (len(workflow_rows) != 1
+            or {key: workflow_rows[0].get(key) for key in ('state', 'sha256')} != earliest):
+        return []
+    body_start = heading_end + 1
+    while body_start < len(source) and source[body_start] == '\n':
+        body_start += 1
+    if body_start >= len(source):
+        return []
+    return [(body_start, len(source))]
+
+
+def _source_bound_request_spans(turn_dir: Path, target: str, text: str) -> list[tuple[int, int]]:
+    """Return exact ranges only when the current authoritative source chain verifies."""
+    try:
+        from report14.bindings import safe_turn
+        root = Path(ROOT).resolve()
+        turn = safe_turn(root, turn_dir)
+        turn_rel = turn.relative_to(root).as_posix()
+        if target in {'CURRENT.md', turn_rel + '/TURN.md'}:
+            return _report_request_source_spans(turn, target, text)
+        if target.startswith(turn_rel + '/parallel/') and target.endswith('/REQUEST.md'):
+            return _pa_request_source_spans(turn, target, text)
+        return []
+    except Exception:
+        # A missing, ambiguous, or changed source remains editable and is scanned.
+        return []
+
+
+def _mask_source_spans(text: str, spans: list[tuple[int, int]]) -> str:
+    normalized = text.replace('\r\n', '\n').replace('\r', '\n')
+    chars = list(normalized)
+    for start, end in spans:
+        if not (0 <= start <= end <= len(chars)):
+            return normalized
+        for index in range(start, end):
+            if chars[index] != '\n':
+                chars[index] = ' '
+    return ''.join(chars)
+
+
 def _content_findings(turn_dir: Path, targets: list[str]) -> list[dict]:
     from route_context import capability_closure, matching_capabilities, resolve_inside_repo
     from terminology_review import has_user_report_candidate
@@ -144,7 +408,10 @@ def _content_findings(turn_dir: Path, targets: list[str]) -> list[dict]:
             # remain necessary and are never inferred from a clean punctuation scan.
             from standards_contract import validate as validate_standards
             errors.extend('standards contract: ' + e for e in validate_standards())
-            for number, prose in _markdown_prose(path.read_text(encoding='utf-8')):
+            source_text = path.read_text(encoding='utf-8')
+            protected = _source_bound_request_spans(turn_dir, target, source_text)
+            scan_text = _mask_source_spans(source_text, protected) if protected else source_text
+            for number, prose in _markdown_prose(scan_text):
                 if '。' in prose and re.search(r'[\u3400-\u9fff]', prose):
                     errors.append(f'{target}:{number}: Writing v0.1 §1 editable Chinese full stop')
         if errors:
@@ -539,6 +806,11 @@ def main() -> int:
         print(f"FAIL: gate check internal error: {exc}")
         return 2
 
+
+
+# APCF-REPORT14-ADAPTER v1
+from report14.bridge import install as _install_report14
+_install_report14('gate_check', globals())
 
 if __name__ == "__main__":
     raise SystemExit(main())

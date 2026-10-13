@@ -194,3 +194,7 @@ def validate_report(report, turn_dir):
     from writing_guard import report_errors as writing_report_errors
     errors += writing_report_errors(report, tr)
     return errors
+
+# APCF-REPORT14-ADAPTER v1
+from report14.bridge import install as _install_report14
+_install_report14('report_contract', globals())

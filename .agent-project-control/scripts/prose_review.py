@@ -7,6 +7,8 @@ is deliberately named STRUCTURE_AND_BINDING, not semantic correctness certificat
 """
 from __future__ import annotations
 import argparse
+from report14.bindings import is14
+from report14.bridge import keypoints
 import hashlib
 import json
 from pathlib import Path
@@ -44,7 +46,7 @@ def explanation_units(report: str) -> list[dict]:
     """Stable paragraph units for coverage, not a claim that all paragraphs are key results."""
     from report_contract import split_sections
     _, sections = split_sections(report)
-    body = sections.get(5, ('',''))[1]
+    body = sections.get(10 if is14(report) else 5, ('',''))[1]
     out=[]
     for para in re.split(r'\n\s*\n', body):
         para=para.strip()
@@ -84,7 +86,7 @@ def draft(report: str, turn: Path) -> dict:
         'explanation_coverage':[{'id':u['id'],'sha256':u['sha256'],'importance':'UNREVIEWED',
                                'takeaway_indexes':[], 'reason':''} for u in explanation_units(report)],
         'takeaways':[],
-        'section_observations':{str(i):'' for i in (0,1,2,3,4,5,6,7,8,9)},
+        'section_observations':{str(i):'' for i in (range(1,15) if is14(report) else range(10))},
         'findings':[],
     }
 
@@ -107,7 +109,7 @@ def validate(report: str, turn: Path, review: dict) -> list[str]:
         _content(reviewer.get('identity'), 'reviewer identity')
         _content(reviewer.get('limits'), 'review limitations')
         _,sections=split_sections(report)
-        if len(sections)!=10: raise ValueError('complete report missing')
+        if len(sections)!=(14 if is14(report) else 10): raise ValueError('complete report missing')
         targets={'goals':parse_checklist((turn/'CHECKLIST.md').read_text(encoding='utf-8')),
                  'tests':parse_tests((turn/'TEST.md').read_text(encoding='utf-8'))}
         for kind, rows in targets.items():
@@ -145,7 +147,7 @@ def validate(report: str, turn: Path, review: dict) -> list[str]:
         if not isinstance(coverage,list) or [x.get('id') for x in coverage]!=[u['id'] for u in units]:
             errors.append('all explanation units must be classified, not just the first four')
             coverage=[]
-        bullets=[line.strip() for line in sections[6][1].splitlines() if BP_RE.fullmatch(line.strip())]
+        bullets=keypoints(report) if is14(report) else [line.strip() for line in sections[6][1].splitlines() if BP_RE.fullmatch(line.strip())]
         takeaways=review.get('takeaways',[])
         if not isinstance(takeaways,list) or len(takeaways)!=len(bullets):
             errors.append('every actual takeaway needs evidence-bound review, without a fixed quota')
@@ -175,7 +177,7 @@ def validate(report: str, turn: Path, review: dict) -> list[str]:
                     if index not in match.get('takeaway_indexes',[]): raise ValueError('takeaway coverage mapping is not reciprocal')
             except (ValueError,KeyError,TypeError) as exc: errors.append(str(exc))
         observations=review.get('section_observations',{})
-        if set(observations)!={str(i) for i in range(10)}: errors.append('complete report review required, not only glossary')
+        if set(observations)!={str(i) for i in (range(1,15) if is14(report) else range(10))}: errors.append('complete report review required, not only glossary')
         for section, note in observations.items():
             try: _content(note, 'section '+section)
             except ValueError as exc: errors.append(str(exc))

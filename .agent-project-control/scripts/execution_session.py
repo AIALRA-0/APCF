@@ -229,4 +229,9 @@ def main():
     except (OSError, ValueError, KeyError) as exc:
         print('BLOCKED:',exc);return 2
     return 0
+
+# APCF-REPORT14-ADAPTER v1
+from report14.bridge import install as _install_report14
+_install_report14('execution_session', globals())
+
 if __name__=='__main__':raise SystemExit(main())

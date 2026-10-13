@@ -33,7 +33,7 @@ new_turn.py 已自动建立当前请求身份；读取本轮 evidence/execution-
 
 终稿建立 prose-review.json 和 terms-review.json：审核实际引用、目标因果、完整讲解的核心结论及限制、关键要点覆盖和用户能看到的术语解释；不设最低词数或固定四条；审查人是作者时如实标自评，不伪装成人类确认
 
-核对 TEST → TURN → CURRENT；正式收口仅走原 Gate/Finalize；prepare-output 生成待发送的同一正文；实际发送后有宿主捕获文本时再 compare-output；若受更高层指令或用户明确简报要求限制，应保存并复验转换后的正文及转换依据，不能一边发送摘要一边声称逐字一致；用户取消或无法完成时诚实报告阻塞，不无限循环求 PASS
+核对 TEST → TURN → CURRENT；正式收口仅走原 Gate/Finalize；完整十四章正文继续同源保存，prepare-output 按当前报告交付接口生成同修订的短摘要；实际发送后有宿主捕获文本时再 compare-output，核对摘要字节和来源身份；不能把摘要与全文称为逐字一致，也不能将调用方文本捕获冒充桌面全部出口拦截；用户取消或无法完成时诚实报告阻塞，不无限循环求 PASS
 
 ## 1.6. 首次与连续轮次验收
 

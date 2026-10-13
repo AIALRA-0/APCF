@@ -401,5 +401,10 @@ def main():
     except (OSError, ValueError, RuntimeError, KeyError, TypeError) as exc:
         print('BLOCKED:', exc, file=sys.stderr); return 2
 
+
+# APCF-REPORT14-ADAPTER v1
+from report14.bridge import install as _install_report14
+_install_report14('supervisor', globals())
+
 if __name__ == '__main__':
     raise SystemExit(main())

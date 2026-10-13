@@ -46,6 +46,22 @@ def test_doc(status='PASS',actual='读回值为 after',evidence='evidence/check.
 def fixture():
     # Clone only the explicit source tree; no runtime leftovers or real repo history.
     with tempfile.TemporaryDirectory(prefix='apcf-repair-fixture-') as d:
+        # Keep synthetic Git operations away from host hooks and their background
+        # writers, which can recreate files while TemporaryDirectory is removing
+        # the fixture. Scope the config and empty hook directory to this fixture.
+        empty_hooks = Path(d) / 'empty-git-hooks'
+        empty_hooks.mkdir()
+        git_config = Path(d) / 'gitconfig'
+        git_config.write_text(
+            f'[core]\n    hooksPath = "{empty_hooks.resolve().as_posix()}"\n',
+            encoding='utf-8', newline='\n')
+        git_env = os.environ.copy()
+        for name in list(git_env):
+            upper = name.upper()
+            if upper in {'GIT_CONFIG_SYSTEM', 'GIT_CONFIG_COUNT', 'GIT_CONFIG_PARAMETERS'} or upper.startswith(('GIT_CONFIG_KEY_', 'GIT_CONFIG_VALUE_')):
+                git_env.pop(name,None)
+        git_env['GIT_CONFIG_GLOBAL'] = str(git_config.resolve())
+        git_env['GIT_CONFIG_NOSYSTEM'] = '1'
         # Windows 临时目录可能采用短路径，夹具根与被测入口须使用同一真实路径
         root=(Path(d)/'project').resolve()
         from distribution_policy import copy_core
@@ -72,7 +88,15 @@ def fixture():
                                  ('TURN.md',PUBLIC+'# 1. 执行轮次\n\n- **Status**：IN_PROGRESS\n\n## 1.1. USER REPORT\n\n尚未收口\n')]:
                 (turn/file).write_text(content)
             (root/'src').mkdir();(root/'src/value.txt').write_text('before')
-            yield root,turn
+            with patch.dict(os.environ, git_env, clear=True):
+                configured = subprocess.run(
+                    ['git', 'config', '--global', '--get', 'core.hooksPath'],
+                    capture_output=True, text=True, encoding='utf-8')
+                if configured.returncode or Path(configured.stdout.strip()).resolve() != empty_hooks.resolve():
+                    raise RuntimeError('private fixture Git hook isolation is not active')
+                # Every Git subprocess below, including sync_skills children that
+                # do not accept an env argument, inherits this fixture-only config.
+                yield root,turn
         finally:
             for mod,attr,value in reversed(saved):setattr(mod,attr,value)
 
@@ -226,13 +250,24 @@ class SessionTests(unittest.TestCase):
         with fixture() as (root,tr):
             a,e=self.setup_plan(root,tr);(tr/'TEST.md').write_text('legacy')
             self.assertTrue(a.workflow_errors(tr))
-    def test_output_prepared_and_exact_text_compared(self):
+    def test_prepared_summary_and_actual_capture_binding_compared(self):
         with fixture() as (root,tr):
             a,e=self.setup_plan(root,tr);report=make_report(tr);r=reviewed(tr,report);repair_io.private_json(tr/'evidence/prose-review.json',r)
             (tr/'TURN.md').write_text(PUBLIC+'# 1. 当前轮次\n- **Status**：IN_PROGRESS\n\n## 1.1. USER REPORT\n\n'+report)
-            out=tr/'evidence/final-response.md';receipt=e.emit(tr,'req-1',out);self.assertEqual(receipt['status'],'PREPARED_FOR_DELIVERY')
-            self.assertEqual(e.emit(tr,'req-1',out,observed=True)['status'],'OBSERVED_TEXT_MATCH')
-            out.write_text('全部完成，略');self.assertRaises(ValueError,e.emit,tr,'req-1',out,observed=True)
+            out=tr/'evidence/final-response.md';receipt=e.emit(tr,'req-1',out)
+            self.assertEqual(receipt['status'],'PREPARED_SUMMARY_FOR_DELIVERY')
+            self.assertLessEqual(len(out.read_text('utf-8')),900)
+            self.assertNotEqual(out.read_text('utf-8'),report)
+            self.assertRaises(ValueError,e.emit,tr,'req-1',out,observed=True)
+            captured=tr/'evidence/captured-summary.md';captured.write_bytes(out.read_bytes())
+            binding=json.loads(out.with_name(out.name+'.binding.json').read_text('utf-8'))
+            binding.update(stage='captured',host_event_id='synthetic-capture; not a real desktop receipt')
+            repair_io.private_json(captured.with_name(captured.name+'.binding.json'),binding)
+            self.assertEqual(e.emit(tr,'req-1',captured,observed=True)['status'],'OBSERVED_SUMMARY_MATCH')
+            binding['revision']+=1;repair_io.private_json(captured.with_name(captured.name+'.binding.json'),binding)
+            self.assertRaises(ValueError,e.emit,tr,'req-1',captured,observed=True)
+            binding['revision']-=1;repair_io.private_json(captured.with_name(captured.name+'.binding.json'),binding)
+            captured.write_text('全部完成，略');self.assertRaises(ValueError,e.emit,tr,'req-1',captured,observed=True)
 
 class ParallelEvidenceTests(unittest.TestCase):
     def test_current_parallel_evidence_is_neutral_and_tools_route_remains(self):

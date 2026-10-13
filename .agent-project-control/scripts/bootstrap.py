@@ -290,5 +290,10 @@ def main():
     install_clean_shell(args.target)
 
 
+
+# APCF-REPORT14-ADAPTER v1
+from report14.bridge import install as _install_report14
+_install_report14('bootstrap', globals())
+
 if __name__ == "__main__":
     main()

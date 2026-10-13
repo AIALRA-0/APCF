@@ -68,5 +68,10 @@ def main():
         raise SystemExit(2)
     print("PASS: CURRENT and Source TURN durable state are consistent" + (" and tracked" if a.require_tracked else ""))
 
+
+# APCF-REPORT14-ADAPTER v1
+from report14.bridge import install as _install_report14
+_install_report14('state_integrity', globals())
+
 if __name__=="__main__":
     main()

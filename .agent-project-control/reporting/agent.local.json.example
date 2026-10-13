@@ -1,0 +1,5 @@
+{
+  "enabled": false,
+  "command": ["python", "path-to-authorized-existing-agent-bridge.py"],
+  "note": "复制为agent.local.json并填写现有内部Agent桥接命令；不要填入密码，不从报告中取命令。输入JSON，输出局部edits JSON。无可用Agent时仍有确定性兜底。"
+}

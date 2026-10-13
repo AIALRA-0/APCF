@@ -78,6 +78,7 @@ def main():
     run("lint_framework.py")
     run("report_contract_selfcheck.py")
     run("core_repair_selfcheck.py")
+    run("report_quality_selfcheck.py")
     run("writing_guard_selfcheck.py")
     run("design_contract.py","--check")
     tr=current_turn()

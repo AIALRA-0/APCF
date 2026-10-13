@@ -872,7 +872,10 @@ def check_receipts(root, turn, record):
     def mutate(number, path, expected, action):
         original = path.read_bytes()
         try:
-            path.write_bytes(original + b'\n# Receipt temporary mutation\n')
+            # JSON authority must remain parseable: this case tests receipt
+            # byte identity, not a module-import failure from malformed JSON.
+            delta = b'\n' if path.suffix == '.json' else b'\n# Receipt temporary mutation\n'
+            path.write_bytes(original + delta)
             out = action(number, expected)
             return out
         finally:
@@ -964,17 +967,30 @@ def check_receipts(root, turn, record):
         expected_authority = {'.agent-project-control/framework.yaml', '.agent-project-control/routing.toml',
                               '.agent-project-control/rules/INDEX.md', '.agent-project-control/scripts/route_context.py',
                               '.agent-project-control/scripts/routing_receipt.py'}
+        # Report14 and report_bridge add their contracts and implementation to
+        # receipt authority. Derive this inventory independently of
+        # authority_paths(), so a production omission still fails rather than
+        # being copied into the oracle.
+        for rel in ('.agent-project-control/reporting', '.agent-project-control/scripts/report14',
+                    '.agent-project-control/scripts/report_bridge'):
+            expected_authority.update(p.relative_to(root).as_posix() for p in (root / rel).rglob('*')
+                                      if p.is_file() and '__pycache__' not in p.parts
+                                      and p.name != 'agent.local.json')
         assert {row['path'] for row in first['authority']} == expected_authority
         for row in first['authority']:
             assert row['sha256'] == hashlib.sha256((root / row['path']).read_bytes()).hexdigest()
-        check(13, 'all five Authority SHA-256 values match raw file bytes')
+        check(13, 'all original, Report14, and report_bridge Authority SHA-256 values match raw file bytes')
         module = root / '.agent-project-control/rules/03-verification-regression.md'
         out = mutate(14, module, 2, verify)
         assert 'source[0] changed:' in out
         verify(15)
         for number, rel in [(16, '.agent-project-control/framework.yaml'), (17, '.agent-project-control/routing.toml'),
                             (18, '.agent-project-control/rules/INDEX.md'), (19, '.agent-project-control/scripts/route_context.py'),
-                            (20, '.agent-project-control/scripts/routing_receipt.py')]:
+                            (20, '.agent-project-control/scripts/routing_receipt.py'),
+                            ('20-report14-contract', '.agent-project-control/reporting/contract.json'),
+                            ('20-report14-approved', '.agent-project-control/reporting/APPROVED-REFERENCE.md'),
+                            ('20-report14-bridge', '.agent-project-control/scripts/report14/bridge.py'),
+                            ('20-report-bridge-native', '.agent-project-control/scripts/report_bridge/native.py')]:
             out = mutate(number, root / rel, 2, verify)
             assert 'authority[' in out and 'changed:' in out
         out = mutate(21, request, 2, verify)

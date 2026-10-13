@@ -363,5 +363,10 @@ def main() -> int:
         return EXIT_INVALID
 
 
+
+# APCF-REPORT14-ADAPTER v1
+from report14.bridge import install as _install_report14
+_install_report14('routing_receipt', globals())
+
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -26,7 +26,8 @@ def main():
     sm=SOURCE_RE.search(text)
     if not sm: raise SystemExit("FAIL: CURRENT has no Source TURN")
     turn=(ROOT/sm.group(1)).resolve()
-    report=text.split(REPORT_MARKER,1)[1].strip()
+    from report14.bindings import report_text
+    report=report_text(text).strip()
     iterations=(FRAMEWORK_ROOT/"iterations").resolve()
     if not turn.is_relative_to(iterations) or len(turn.relative_to(iterations).parts)!=3 or turn.parent.name!="turns":
         raise SystemExit("FAIL: Source TURN must be a canonical turn inside iterations")

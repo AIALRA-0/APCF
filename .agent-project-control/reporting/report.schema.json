@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "contract_id",
+    "sections"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "contract_id": {
+      "const": "apcf-report14/1.0.0"
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "prefixItems": [
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 1
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 2
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 3
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 4
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 5
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 6
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 7
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 8
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 9
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 10
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 11
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 12
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 13
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "number",
+            "body"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "const": 14
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 2000000
+            }
+          }
+        }
+      ]
+    }
+  }
+}
